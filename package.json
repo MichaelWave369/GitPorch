@@ -1,6 +1,6 @@
 {
   "name": "gitporch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "The GitPorch: a local-first Git repository porch and read-only dashboard",
   "type": "module",
@@ -16,7 +16,8 @@
     "check": "npm test",
     "clubhouse": "node src/clubhouse-cli.mjs",
     "crew": "node src/porch-crew-cli.mjs",
-    "sandbox": "node src/sandbox-cli.mjs"
+    "sandbox": "node src/sandbox-cli.mjs",
+    "recovery": "node src/recovery-cli.mjs"
   },
   "license": "MIT"
 }

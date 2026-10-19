@@ -48,8 +48,11 @@ function checkJob(record, id) {
   if(Number.isNaN(Date.parse(record.queuedAt))) throw new Error('Invalid queue timestamp');
 }
 function checkResult(result, id) {
-  if(result.schema!==SCHEMA || result.id!==id || !['PASS','FAIL','ERROR','STALE'].includes(result.outcome)) throw new Error('Invalid crew result');
+  if(result.schema!==SCHEMA || result.id!==id || !['PASS','FAIL','ERROR','STALE','ABORTED_UNVERIFIED'].includes(result.outcome)) throw new Error('Invalid crew result');
   if(!Number.isSafeInteger(result.durationMs)||result.durationMs<0)throw new Error('Invalid crew duration');
+  if(result.outcome==='ABORTED_UNVERIFIED'&&
+     (result.scope!=='OPERATOR_MANUAL_RECOVERY_NO_EXECUTION'||typeof result.reason!=='string'||!result.reason.trim()||result.reason.length>240))
+    throw new Error('Invalid manually abandoned integrity job');
 }
 export async function enqueueCheck(dataDir, repoName) {
   repoName=checkedRepo(repoName);

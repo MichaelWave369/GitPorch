@@ -16,7 +16,7 @@
   <a href="#home" class="active">⌂ <span>Front Porch</span></a>
   <a href="#repositories">⑂ <span>Repositories</span></a>
   <a href="#clubhouse">◇ <span>PhiBots Clubhouse</span></a>
-  <a href="#workshop">⚒ <span>The Workshop</span><i>R1-B</i></a>
+  <a href="#workshop">⚒ <span>The Workshop</span><i>R1-D1</i></a>
   <a href="#crew">⌘ <span>Porch Crew</span><i>R1</i></a>
   <a href="#ledger">▤ <span>The Ledger</span></a>
   <a href="#start">◇ <span>Getting Started</span></a>
@@ -32,7 +32,7 @@
 <div class="hero-bottom"><span>⌁ &nbsp; BUILT ON GIT, NOT GITHUB ACTIONS.</span><span>✦ &nbsp; LEDGER ABOVE EGO.</span></div>
 </section>
 <div id="notice" class="notice" role="status">Checking for a running local Git service...</div>
-<div class="stats"><article><small>REPOSITORIES &nbsp; ⑂</small><strong id="repo-count">—</strong><span>Local Git homestead</span></article><article><small>BRANCHES &nbsp; ⌁</small><strong id="branch-count">—</strong><span>Across local repos</span></article><article><small>GIT TRANSPORT &nbsp; ⇄</small><strong id="transport" class="word">CHECKING</strong><span>Loopback-only, read-only</span></article><article><small>THE PORCH CREW &nbsp; ⚒</small><strong class="word">R1-B</strong><span>Opt-in Docker test workers</span></article></div>
+<div class="stats"><article><small>REPOSITORIES &nbsp; ⑂</small><strong id="repo-count">—</strong><span>Local Git homestead</span></article><article><small>BRANCHES &nbsp; ⌁</small><strong id="branch-count">—</strong><span>Across local repos</span></article><article><small>GIT TRANSPORT &nbsp; ⇄</small><strong id="transport" class="word">CHECKING</strong><span>Loopback-only, read-only</span></article><article><small>THE PORCH CREW &nbsp; ⚒</small><strong class="word">R1-D1</strong><span>Local tests + safe job recovery</span></article></div>
 <section id="repositories" class="section"><div class="heading"><div><small>YOUR OWN CORNER OF THE INTERNET</small><h2>Repositories <em>on the porch.</em></h2><p>Bare Git repositories from your machine. No cloud required.</p></div><a class="btn outline" href="#start">+ New repository ↘</a></div>
 <div class="columns"><div class="repos" id="repos"></div><div class="ledger" id="ledger"><div class="ledger-head"><span>▤</span><div><strong>The Ledger</strong><small>RECENT COMMIT EVIDENCE</small></div></div><div class="history" id="history">Select a repository to inspect its history.</div><div class="ledger-foot">No invented build results. Only Git evidence.</div></div></div>
 </section>
@@ -58,6 +58,7 @@
 </div>
 <p class="club-note">No auto-run, remote job submissions, or project scripts on Windows. Only the operator can enqueue and run via <code>node src/sandbox-cli.mjs</code>. Workers use a preloaded immutable Docker image, no container network, read-only filesystem, dropped capabilities and limits. These controls reduce risk but are not a guarantee against container escapes. Run only code you're prepared to test on your Docker host.</p>
 </section>
+<p class="club-note">R1-D1: Use <code>node src/recovery-cli.mjs doctor</code> to inspect interrupted jobs in both worker lanes. A local operator may explicitly mark an interrupted job <strong>ABORTED_UNVERIFIED</strong> after confirming the worker has stopped. Nothing is retried, deleted, or promoted to PASS.</p>
 <section class="section" id="start"><div class="heading"><div><small>FIRST STEPS</small><h2>Make yourself <em>at home.</em></h2><p>Three commands, one porch. Works even when GitHub doesn't.</p></div></div>
 <div class="steps"><article><small>01 / CREATE</small><h3>Plant the first post.</h3><p>Create your first bare repository.</p><code>node src/cli.mjs init hello-world</code><button data-copy="node src/cli.mjs init hello-world">Copy command</button></article><article><small>02 / SERVE</small><h3>Light up the porch.</h3><p>Run the local dashboard and Git daemon.</p><code>npm start</code><button data-copy="npm start">Copy command</button></article><article><small>03 / VERIFY</small><h3>Check the floorboards.</h3><p>Verify Git object integrity, not CI.</p><code>node src/cli.mjs verify hello-world</code><button data-copy="node src/cli.mjs verify hello-world">Copy command</button></article></div>
 </section>

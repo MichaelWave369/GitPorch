@@ -105,7 +105,7 @@ async function refreshWorkshop(){
   if(!latest.length){jobs.append(mk('p','No integrity checks queued yet.','club-empty'));return;}
   for(const job of latest){
    const row=mk('div','','club-row');
-   const label=job.status==='DONE'?(job.outcome==='PASS'?'Git fsck PASS · NOT CI':'Git fsck '+job.outcome+' · NOT CI'):
+   const label=job.status==='DONE'?(job.outcome==='ABORTED_UNVERIFIED'?'ABORTED · UNVERIFIED · NO CHECK':'Git fsck '+job.outcome+' · NOT CI'):
      job.status==='RUNNING_UNCERTAIN'?'INTERRUPTED OR RUNNING · UNVERIFIED':'QUEUED · UNVERIFIED';
    row.append(mk('strong',job.repo+' · '+label),mk('small',job.commit.slice(0,12)+' · '+job.check));
    jobs.append(row);
@@ -132,7 +132,7 @@ async function refreshSandbox(){
   if(!snap.jobs.length){items.append(make('p','No container jobs yet. The tool shed is quiet.','club-empty'));return;}
   for(const job of snap.jobs.slice(0,10)){
    const row=make('div','','club-row');
-   const state=job.status==='DONE'?'CONTAINER '+job.outcome:job.status==='RUNNING_UNCERTAIN'?'INTERRUPTED / UNVERIFIED':'QUEUED / NOT RUN';
+   const state=job.status==='DONE'?(job.outcome==='ABORTED_UNVERIFIED'?'ABORTED · UNVERIFIED · NO TEST':'CONTAINER '+job.outcome):job.status==='RUNNING_UNCERTAIN'?'INTERRUPTED / UNVERIFIED':'QUEUED / NOT RUN';
    const results=job.counts?(' · '+job.counts.pass+'/'+job.counts.tests+' tests passed'):'';
    row.append(make('strong',job.repo+' · '+state),make('small',job.commit.slice(0,12)+results+' · '+job.kind));
    if(job.evidence?.stdoutSha256)row.append(make('small','Local stdout SHA-256: '+job.evidence.stdoutSha256.slice(0,16)+'… · UNSIGNED'));

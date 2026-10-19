@@ -44,8 +44,12 @@ function assertJob(j,id){
  if(j.schema!==SCHEMA||j.id!==id||j.type!=='NODE_BUILTIN_TESTS'||!validSlug(j.repo)||!SHA.test(j.commit)||!IMAGE.test(j.image)||!Number.isFinite(Date.parse(j.queuedAt)))throw Error('Invalid isolated test job');
 }
 function assertResult(r,id){
- if(r.schema!==SCHEMA||r.id!==id||!['PASS','FAIL','ERROR','STALE','NO_TESTS'].includes(r.outcome)||!Number.isInteger(r.durationMs)||r.durationMs<0)throw Error('Invalid isolated test result');
+ if(r.schema!==SCHEMA||r.id!==id||!['PASS','FAIL','ERROR','STALE','NO_TESTS','ABORTED_UNVERIFIED'].includes(r.outcome)||!Number.isInteger(r.durationMs)||r.durationMs<0)throw Error('Invalid isolated test result');
  if(r.evidence!=null&&!evidenceShapeValid(r.evidence))throw Error('Invalid container evidence metadata');
+ if(r.outcome==='ABORTED_UNVERIFIED'&&
+    (r.scope!=='OPERATOR_MANUAL_RECOVERY_NO_EXECUTION'||typeof r.reason!=='string'||!r.reason.trim()||
+     r.reason.length>240||r.counts!==null||r.evidence!==null))
+   throw Error('Invalid manually abandoned test job');
  if(r.outcome==='PASS'&&(!r.counts||!Number.isSafeInteger(r.counts.pass)||r.counts.pass<1||r.evidence?.dockerCliExitCode!==0&&r.evidence!=null))throw Error('Invalid passing test evidence');
 }
 export async function snapshot(d){
