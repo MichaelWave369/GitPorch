@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm,readFile,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {tmpdir} from 'node:os';
 import {generateLocalSigner,signSubject} from '../src/evidence-signatures.mjs';
 import {generateWitnessKeys,witnessReport,verifyWitness,signWitnessFile,verifyWitnessFiles} from '../src/witness-evidence.mjs';
@@ -70,7 +71,7 @@ test('witness generation will not overwrite key files',()=>workspace(async root=
 }));
 
 test('private key destination guard rejects Pages and tracked source folders',()=>workspace(async root=>{
- await assert.rejects(generateWitnessKeys(new URL('../docs/witness-insecure',import.meta.url).pathname),/outside tracked source/);
+ await assert.rejects(generateWitnessKeys(fileURLToPath(new URL('../docs/witness-insecure',import.meta.url))),/outside tracked source/);
  const keys=await generateWitnessKeys(join(root,'safe'));
  assert.match(keys.fingerprint,/^sha256:/);
 }));
