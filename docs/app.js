@@ -1,5 +1,5 @@
 // GitHub Pages showcase: synthetic fixture data only.
-// Absolutely no access to localhost, no API calls, no repository uploads.
+// Standalone sample data. No backend connections or repository uploads.
 // Live GitPorch software runs independently on the user's PC.
 const samples = [
   {name:'porch-demo',branches:['main','campfire'],commits:[
