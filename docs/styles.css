@@ -18,3 +18,22 @@
 footer a:hover{color:var(--gold)}
 @media(max-width:1150px){.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.toplink{font-size:9px;padding:7px}.topbar .right{gap:5px}.topbar{font-size:9px}.right>span:first-child{font-size:9px;padding:6px}.feature-grid{grid-template-columns:1fr}.demo-toolbar input{max-width:none;width:100%}.hero-eyebrow{font-size:9px}}
+
+/* R0.3 PhiBots Clubhouse public demo — synthetic fixtures only */
+.clubhouse-grid{display:grid;grid-template-columns:1fr 1.25fr;gap:14px}
+.club-pane{background:#17271f;border:1px solid var(--border);border-radius:11px;padding:21px;min-width:0}
+.club-pane h3{font:normal 21px Georgia,serif;margin:0 0 17px}
+.club-pane h3 small{display:block;margin-top:7px;font:700 10px system-ui;letter-spacing:1px;color:var(--gold)}
+.club-roster{display:grid;gap:9px}
+.club-person,.club-proposal{width:100%;text-align:left;color:var(--ink);border:1px solid #405744;background:#213628;border-radius:9px;padding:14px;display:flex;gap:13px;align-items:center}
+.club-person{cursor:pointer}.club-person:hover,.club-person.selected{background:#334b34;border-color:#a9bc84}
+.club-person .chair{font:24px Georgia,serif;background:#435a3c;color:var(--gold);border-radius:9px;min-width:42px;height:42px;display:grid;place-items:center}
+.club-person strong,.club-proposal strong{display:block;font-size:13px;line-height:1.6}
+.club-person small,.club-proposal small{display:block;font-size:11px;color:#a8bba9;line-height:1.6;overflow-wrap:anywhere}
+.club-proposal{display:block}
+.club-proposal .state{font:800 10px system-ui;letter-spacing:1px;color:#ebd194;display:block;margin:6px 0}
+.club-note{font-size:12px;line-height:1.7;color:#a5bda4;margin:16px 0}.club-note strong{color:var(--gold)}
+.crew-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.crew-filter button{background:#1d3025;color:#d0dccc;border:1px solid #425844;border-radius:7px;padding:9px 15px}
+.crew-filter button[aria-pressed=true]{background:var(--gold);color:#1b2a1e;border-color:var(--gold)}
+@media(max-width:850px){.clubhouse-grid{grid-template-columns:1fr}}
