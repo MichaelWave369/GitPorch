@@ -44,3 +44,18 @@ test('signature is portable: another verifier needs only attestation and indepen
  value.body.subject.repo='Intruder';await writeFile(output,JSON.stringify(value));
  await assert.rejects(verifyFile(output,keys.publicKeyFile),/signature verification failed/);
 }));
+
+test('signed container failure preserves negative outcome, image, counts and limited hash evidence',()=>temp(async dir=>{
+ const keys=await generateLocalSigner(dir);
+ const pem=await readFile(keys.privateKeyFile,'utf8');
+ const pub=await readFile(keys.publicKeyFile,'utf8');
+ const image='sha256:'+'b'.repeat(64);
+ const failed={...job,outcome:'FAIL',image,counts:{tests:2,pass:1,fail:1},evidence:{stdoutSha256:'c'.repeat(64),scope:'LOCAL_DOCKER_OUTPUT_HASHES_NOT_SIGNED'}};
+ const signed=signSubject(subjectFromJob('tests',failed),pem);
+ const verified=verifyEnvelope(signed,pub);
+ assert.equal(verified.subject.outcome,'FAIL');
+ assert.equal(verified.subject.image,image);
+ assert.equal(verified.subject.counts.fail,1);
+ assert.equal(verified.subject.executionEvidence.stdoutSha256,'c'.repeat(64));
+ assert.equal(verified.assurance,'SIGNATURE_VALID_KEY_HOLDER_CLAIM_ONLY_NOT_EXECUTION_PROOF');
+}));
