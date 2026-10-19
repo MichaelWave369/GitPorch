@@ -144,3 +144,30 @@ async function refreshSandbox(){
  }
 }
 refreshSandbox();
+
+async function refreshRecoveryDoctor(){
+ const renderLane=(target,state)=>{
+  const box=document.getElementById(target);
+  if(!box)return;
+  const p=document.createElement('p');
+  p.className='club-empty';
+  p.textContent=state
+   ? 'Receipt integrity: '+state.integrity+' · '+state.workerLock
+      +' · Queued: '+(state.queued??'unknown')
+      +' · Uncertain: '+(state.runningUncertain??'unknown')
+      +' · Done: '+(state.completed??'unknown')
+   : 'Recovery diagnostics could not be verified.';
+  box.replaceChildren(p);
+ };
+ try{
+  const response=await fetch('/api/recovery',{cache:'no-store'});
+  if(!response.ok)throw Error('Recovery diagnostic unavailable');
+  const data=await response.json();
+  if(data.mode!=='READ_ONLY_RECOVERY_DIAGNOSTIC')throw Error('Unexpected recovery contract');
+  renderLane('recovery-git',data.lanes.git);
+  renderLane('recovery-tests',data.lanes.tests);
+ }catch{
+  renderLane('recovery-git',null);renderLane('recovery-tests',null);
+ }
+}
+refreshRecoveryDoctor();

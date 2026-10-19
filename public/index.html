@@ -17,6 +17,7 @@
   <a href="#repositories">⑂ <span>Repositories</span></a>
   <a href="#clubhouse">◇ <span>PhiBots Clubhouse</span></a>
   <a href="#workshop">⚒ <span>The Workshop</span><i>R1-D1</i></a>
+  <a href="#recovery">⌁ <span>Recovery Doctor</span></a>
   <a href="#crew">⌘ <span>Porch Crew</span><i>R1</i></a>
   <a href="#ledger">▤ <span>The Ledger</span></a>
   <a href="#start">◇ <span>Getting Started</span></a>
@@ -59,6 +60,15 @@
 <p class="club-note">No auto-run, remote job submissions, or project scripts on Windows. Only the operator can enqueue and run via <code>node src/sandbox-cli.mjs</code>. Workers use a preloaded immutable Docker image, no container network, read-only filesystem, dropped capabilities and limits. These controls reduce risk but are not a guarantee against container escapes. Run only code you're prepared to test on your Docker host.</p>
 </section>
 <p class="club-note">R1-D1: Use <code>node src/recovery-cli.mjs doctor</code> to inspect interrupted jobs in both worker lanes. A local operator may explicitly mark an interrupted job <strong>ABORTED_UNVERIFIED</strong> after confirming the worker has stopped. Nothing is retried, deleted, or promoted to PASS.</p>
+<section id="recovery" class="section">
+<div class="heading"><div><small>RECOVERY DOCTOR · READ-ONLY LOCAL DIAGNOSTICS</small>
+<h2>Nothing green <em>by accident.</em></h2>
+<p>Lock presence is not proof of a running worker. Uncertain jobs require independent operator inspection.</p></div></div>
+<div class="clubhouse-grid">
+<div class="club-pane"><h3>Git integrity lane <small>READ-ONLY DIAGNOSIS</small></h3><div id="recovery-git">Checking integrity receipts...</div></div>
+<div class="club-pane"><h3>Docker tests lane <small>READ-ONLY DIAGNOSIS</small></h3><div id="recovery-tests">Checking container receipts...</div></div>
+</div><p class="club-note">Run <code>node src/recovery-cli.mjs doctor</code> for full details. Recovery can only mark an interrupted job <strong>ABORTED_UNVERIFIED</strong> through an explicit local CLI command. This screen cannot unlock, restart or approve a job.</p>
+</section>
 <section class="section" id="start"><div class="heading"><div><small>FIRST STEPS</small><h2>Make yourself <em>at home.</em></h2><p>Three commands, one porch. Works even when GitHub doesn't.</p></div></div>
 <div class="steps"><article><small>01 / CREATE</small><h3>Plant the first post.</h3><p>Create your first bare repository.</p><code>node src/cli.mjs init hello-world</code><button data-copy="node src/cli.mjs init hello-world">Copy command</button></article><article><small>02 / SERVE</small><h3>Light up the porch.</h3><p>Run the local dashboard and Git daemon.</p><code>npm start</code><button data-copy="npm start">Copy command</button></article><article><small>03 / VERIFY</small><h3>Check the floorboards.</h3><p>Verify Git object integrity, not CI.</p><code>node src/cli.mjs verify hello-world</code><button data-copy="node src/cli.mjs verify hello-world">Copy command</button></article></div>
 </section>
