@@ -17,7 +17,8 @@
     "clubhouse": "node src/clubhouse-cli.mjs",
     "crew": "node src/porch-crew-cli.mjs",
     "sandbox": "node src/sandbox-cli.mjs",
-    "recovery": "node src/recovery-cli.mjs"
+    "recovery": "node src/recovery-cli.mjs",
+    "evidence": "node src/evidence-cli.mjs"
   },
   "license": "MIT"
 }
