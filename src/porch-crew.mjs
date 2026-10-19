@@ -1,7 +1,7 @@
 // GitPorch Porch Crew R1-A: independent, local-only Git integrity queue.
 // No arbitrary job commands, untrusted code execution, network writes, or CI claims.
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, readdir, readFile, rename, open } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rename, open, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { git, repoRoot, validSlug, listRepos } from './git.mjs';
 
@@ -97,6 +97,11 @@ export async function queueSnapshot(dataDir) {
 }
 export async function workOnce(dataDir) {
   await ensure(dataDir);
+  const lockPath=join(dataDir,'porch-crew','worker.lock');
+  let lock;
+  try { lock=await open(lockPath,'wx',0o600); }
+  catch(e) { if(e.code==='EEXIST')return {status:'BUSY',message:'Worker lock exists; inspect before manual recovery'};throw e; }
+  try {
   // Validate existing receipts before processing to avoid silently ignoring damage.
   await queueSnapshot(dataDir);
   const candidates=await entries(dataDir,'pending');
@@ -127,4 +132,8 @@ export async function workOnce(dataDir) {
     return {id,status:'DONE',outcome,check:'GIT_OBJECT_INTEGRITY',scope:result.scope};
   }
   return {status:'IDLE',message:'No queued local integrity jobs'};
+  } finally {
+    await lock.close();
+    await unlink(lockPath);
+  }
 }
