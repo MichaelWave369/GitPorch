@@ -25,12 +25,14 @@ node src/porch-crew-cli.mjs list
 node src/sandbox-cli.mjs list
 
 # Substitute an actual completed job ID from the correct queue:
-node src/evidence-cli.mjs sign git <job-id> .\git-report.json --i-attest-local-result
+node src/evidence-cli.mjs sign git <job-id> .\data\signed-reports\git-report.json --i-attest-local-result
 # Or:
-node src/evidence-cli.mjs sign tests <job-id> .\tests-report.json --i-attest-local-result
+node src/evidence-cli.mjs sign tests <job-id> .\data\signed-reports\tests-report.json --i-attest-local-result
 ```
 
 The signing command validates the local queue's existing checksums, requires `DONE` and an actual recorded outcome, and writes a new signed report **without overwriting a previous report**. You may sign `FAIL`, `ERROR`, `STALE` or `ABORTED_UNVERIFIED` too. Signing **does not promote a result to PASS**, rerun a job, start Docker or merge a pull request.
+
+The output parent directory is created automatically; the example stores reports under the Git-ignored `data/` tree. If you choose another location, you are responsible for keeping it private.
 
 The exported JSON report includes the lane, job identifier, repository name, pinned commit, outcome, and, when present, the container image, counts and locally generated output hashes. **Treat reports as potentially sensitive project metadata.** Keep them private unless you explicitly intend to share them.
 

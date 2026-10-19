@@ -2,7 +2,7 @@
 // A valid signature proves key possession and unchanged signed data, NOT trustworthy execution.
 import { createHash, createPrivateKey, createPublicKey, generateKeyPairSync, sign, verify } from 'node:crypto';
 import { mkdir, open, readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 
 export const SCHEMA = 'gitporch-offline-evidence/v1';
 const SHA = /^[0-9a-f]{40}$/;
@@ -75,6 +75,7 @@ export async function signCompletedJob(dataDir,lane,id,privateKeyFile,output,loa
   const subject=subjectFromJob(lane,job);
   const pem=await readFile(privateKeyFile,'utf8');
   const envelope=signSubject(subject,pem);
+  await mkdir(dirname(output),{recursive:true,mode:0o700});
   await writeExclusive(output,JSON.stringify(envelope,null,2)+'\n',0o600);
   return {output,jobId:id,outcome:subject.outcome,keyFingerprint:envelope.body.keyFingerprint,
     assurance:'SIGNED_LOCAL_REPORT_NOT_INDEPENDENT_EXECUTION_PROOF'};

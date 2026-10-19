@@ -142,7 +142,7 @@ A completed Git integrity check or opt-in Docker test run can be **manually sign
 
 ```powershell
 node src/evidence-cli.mjs keygen --i-accept-unencrypted-private-key
-node src/evidence-cli.mjs sign git <completed-job-id> .\git-report.json --i-attest-local-result
+node src/evidence-cli.mjs sign git <completed-job-id> .\data\signed-reports\git-report.json --i-attest-local-result
 node src/evidence-cli.mjs verify .\git-report.json .\data\signer\operator-public.pem
 ```
 
