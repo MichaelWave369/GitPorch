@@ -122,6 +122,20 @@ The worker stages the pinned repository commit as a tar archive, then uses `dock
 
 See [R1-B/C operator guide](docs/SANDBOX_TESTS.md) for limitations, status semantics and recovery. The local read-only dashboard shows these receipts at `http://127.0.0.1:3690/#sandbox`. Public GitHub Pages receives no job data.
 
+## R1-D1: The Recovery Doctor
+
+A local operator can inspect interrupted worker queues without executing jobs or silently changing results:
+
+```powershell
+node src/recovery-cli.mjs doctor
+# Only AFTER verifying the original worker has stopped and the lock is absent:
+node src/recovery-cli.mjs abandon git <job-id> "Operator confirmed worker stopped" --i-confirm-no-worker-running
+# Or for container tests:
+node src/recovery-cli.mjs abandon tests <job-id> "Container inspected and stopped" --i-confirm-no-worker-running
+```
+
+The only permitted manual outcome is **`ABORTED_UNVERIFIED`**, never a pass or successful test. Existing worker locks cause recovery to refuse, and it does not kill processes, remove locks or re-run tests. A partial manual recovery can be completed only when its existing checksum-validated abandonment receipt has the same operator reason. **Never delete a lock until independently verifying no worker/container is running and backing up your local data.** See [Safe Recovery Guide](docs/RECOVERY.md). No signed attestations or automated restart safety claims are made.
+
 ## NOT yet implemented
 
 Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, signed artifact attestation, automated mirroring, TMC integration, or production network deployment.
