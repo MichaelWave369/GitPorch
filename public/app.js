@@ -135,6 +135,7 @@ async function refreshSandbox(){
    const state=job.status==='DONE'?'CONTAINER '+job.outcome:job.status==='RUNNING_UNCERTAIN'?'INTERRUPTED / UNVERIFIED':'QUEUED / NOT RUN';
    const results=job.counts?(' · '+job.counts.pass+'/'+job.counts.tests+' tests passed'):'';
    row.append(make('strong',job.repo+' · '+state),make('small',job.commit.slice(0,12)+results+' · '+job.kind));
+   if(job.evidence?.stdoutSha256)row.append(make('small','Local stdout SHA-256: '+job.evidence.stdoutSha256.slice(0,16)+'… · UNSIGNED'));
    items.append(row);
   }
  }catch{

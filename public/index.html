@@ -54,7 +54,7 @@
 <p>Actual local Node test runs in a constrained Docker container, never on the host. Requires Docker and an image pinned to its immutable ID or digest.</p></div></div>
 <div class="clubhouse-grid">
 <div class="club-pane"><h3>Container jobs <small>REAL LOCAL JOB COUNTS</small></h3><div id="sandbox-counts" class="workshop-stats">Reading local job receipts...</div></div>
-<div class="club-pane"><h3>Test receipts <small>CONTAINER-REPORTED · NOT SIGNED</small></h3><div id="sandbox-jobs" role="list">Reading test results...</div></div>
+<div class="club-pane"><h3>Test receipts <small>LOCAL OUTPUT HASHES · NOT SIGNED</small></h3><div id="sandbox-jobs" role="list">Reading test results...</div></div>
 </div>
 <p class="club-note">No auto-run, remote job submissions, or project scripts on Windows. Only the operator can enqueue and run via <code>node src/sandbox-cli.mjs</code>. Workers use a preloaded immutable Docker image, no container network, read-only filesystem, dropped capabilities and limits. These controls reduce risk but are not a guarantee against container escapes. Run only code you're prepared to test on your Docker host.</p>
 </section>

@@ -6,8 +6,9 @@
 | R0.3 | PhiBots Clubhouse: local commit-linked proposals and operator review notes; public fictional showcase | Merged PR #3 |
 | R0.2 | Windows service packaging; checked backup/restore | Planned |
 | R1-A | **The Porch Crew**: local Git fsck queue, commit-pinned receipts, interrupted-job uncertainty; no code tests | Merged PR #4 |
-| R1-B | **Opt-in Node.js tests in restricted, network-disabled Docker containers**; unsigned local receipts | PR #5 proposed |
-| R1-C | Hardened runner security, signed external attestations, broader tested build recipes, reliable recovery | Planned |
+| R1-B | **Opt-in Node.js tests in restricted, network-disabled Docker containers**; unsigned local receipts | Merged PR #5 |
+| R1-C | Strict pinned-image verification, operator Docker preflight, stricter TAP validation, output hashes (unsigned) | PR #6 proposed |
+| R1-D | External signatures and witnesses, reliable recovery, broader tested build recipes, stronger isolation | Planned |
 | R2 | Authenticated SSH push, users, repo permissions and receipts | Planned |
 | R3 | Pull requests, branch protection, code review, issues, artifacts, actual-status badges | Planned |
 | R4 | Optional GitHub/GitLab mirroring and governed AI-agent adapters | Planned |

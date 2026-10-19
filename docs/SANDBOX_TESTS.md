@@ -18,6 +18,7 @@ No `npm install` or Docker pull occurs during queue processing. Repos depending 
 ## Running
 
 ```powershell
+node src/sandbox-cli.mjs preflight sha256:<paste-id>
 node src/sandbox-cli.mjs enqueue hello-world sha256:<paste-id>
 node src/sandbox-cli.mjs list
 node src/sandbox-cli.mjs work-once --i-approve-container-tests
@@ -27,6 +28,15 @@ npm start
 ```
 
 The explicit flag is mandatory on every worker invocation. **Nothing auto-starts Docker jobs.** The localhost HTTP endpoint `GET /api/sandbox-tests` is read-only.
+
+## R1-C evidence hardening
+
+- `preflight <image>` performs only a local `docker image inspect`, without fetching images or starting a container.
+- Each job compares Docker's actual inspected immutable image ID (or an explicitly matching `node:22-alpine@sha256` RepoDigest) to the queued image identity. If that check fails, the job reports `ERROR` and does not run project tests.
+- A passing TAP summary must have a TAP version header, a plan, exactly one parsable set of footer totals, internally consistent counts, at least one passed test, zero test failures, zero cancelled tests and a successful container exit. All-skipped suites report `NO_TESTS`; inconsistent results report `ERROR`.
+- Completed container executions record SHA-256 hashes of captured stdout and stderr, observed Docker image ID, and Docker CLI exit code. Logs themselves are **not written into the receipt**.
+- This is locally generated, unsigned evidence. It does not authenticate the runner, attest the host, or prevent compromised tests from forging console output. The hashes enable comparisons only when the original output is independently retained by the operator.
+- The hash of captured output cannot prove the entire stream was received after a crash. Interrupted work remains uncertain.
 
 ## Protections
 
@@ -48,4 +58,4 @@ All receipts are local checksum-protected JSON, **not signed or remotely witness
 
 ## What comes later
 
-Production untrusted-runner isolation, reproducible environments and dependency policies, artifact signing, independent attestations, trusted runner identities, comprehensive test-report capture, queue recovery, and actual hosted team CI are **not implemented**. The GitHub Pages showcase has no connection to the local tests.
+Production untrusted-runner isolation, reproducible environments and dependency policies, artifact signing, **independent third-party attestations**, trusted runner identities, full test-log retention, queue recovery, and actual hosted team CI are **not implemented**. The GitHub Pages showcase has no connection to the local tests.
