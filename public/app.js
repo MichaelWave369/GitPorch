@@ -89,3 +89,30 @@ async function refreshClubhouse(){
  }
 }
 refreshClubhouse();
+
+async function refreshWorkshop(){
+ const counts=document.getElementById('workshop-counts');
+ const jobs=document.getElementById('workshop-jobs');
+ if(!counts||!jobs)return;
+ const mk=(tag,text,cls='')=>{const element=document.createElement(tag);element.textContent=String(text);if(cls)element.className=cls;return element};
+ try{
+  const response=await fetch('/api/porch-crew',{cache:'no-store'});
+  if(!response.ok)throw Error('Queue endpoint unavailable');
+  const snapshot=await response.json();
+  counts.replaceChildren(mk('p','Queued: '+snapshot.counts.queued+' · Uncertain: '+snapshot.counts.runningUncertain+' · Finished: '+snapshot.counts.done));
+  jobs.replaceChildren();
+  const latest=snapshot.jobs.slice(0,10);
+  if(!latest.length){jobs.append(mk('p','No integrity checks queued yet.','club-empty'));return;}
+  for(const job of latest){
+   const row=mk('div','','club-row');
+   const label=job.status==='DONE'?(job.outcome==='PASS'?'Git fsck PASS · NOT CI':'Git fsck '+job.outcome+' · NOT CI'):
+     job.status==='RUNNING_UNCERTAIN'?'INTERRUPTED OR RUNNING · UNVERIFIED':'QUEUED · UNVERIFIED';
+   row.append(mk('strong',job.repo+' · '+label),mk('small',job.commit.slice(0,12)+' · '+job.check));
+   jobs.append(row);
+  }
+ }catch{
+  counts.replaceChildren(mk('p','Queue unavailable or receipts could not be verified.','club-empty'));
+  jobs.replaceChildren(mk('p','No verified queue results can be shown.','club-empty'));
+ }
+}
+refreshWorkshop();

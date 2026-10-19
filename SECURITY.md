@@ -18,3 +18,7 @@ Before remote use, design authenticated SSH or HTTPS transport, repository ACLs,
 ## Clubhouse R0.3 trust boundary
 
 The local Clubhouse CLI can label contributors and record proposal or review events. These are **operator-entered text records**, not proof that a bot or person authored anything. Commit references are checked as locally present Git commit objects when submitted, but no CI, signature, identity, code review, PR merge, or delegated authorization is performed. Records use SHA-256 checksums to detect accidental modification, **not digital signatures or a tamper-proof audit log**. An actor with filesystem write access could rewrite or delete them; preserve independent backups. Only a local CLI can mutate; the HTTP endpoint is GET-only and loopback-bound. Treat proposal summaries as untrusted text.
+
+## Porch Crew R1-A limitations
+
+R1-A only executes fixed Git `rev-parse` and `fsck` commands using argument arrays, never repository-provided scripts or arbitrary job commands. The worker runs under the **same OS account as the operator** and is **not sandboxed**. It is limited to trusted local Git repositories and loopback-only UI; never submit or expose it to untrusted contributors. Job receipts use bare SHA-256 checksums, not identity signatures or tamper-resistant storage. Jobs which crashed or became incomplete remain `RUNNING_UNCERTAIN` and require deliberate local inspection. A `PASS` result verifies Git object integrity for a stable recorded HEAD only; it does not prove tests, application safety, or code authenticity.

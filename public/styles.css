@@ -13,3 +13,8 @@
 .club-note{font-size:11px;color:#a5baa4;line-height:1.8}
 .club-note code{color:var(--gold)}
 @media(max-width:800px){.clubhouse-grid{grid-template-columns:1fr}}
+
+/* Porch Crew R1-A: a read-only integrity queue, not a CI build dashboard */
+.workshop-stats{font:normal 17px Georgia,serif;color:var(--gold);padding:13px 0}
+#workshop-jobs .club-row{padding:10px 0}
+#workshop-jobs .club-row small{color:#9db39f}

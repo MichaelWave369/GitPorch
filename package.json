@@ -14,7 +14,8 @@
     "repos": "node src/cli.mjs list",
     "verify": "node src/cli.mjs verify",
     "check": "npm test",
-    "clubhouse": "node src/clubhouse-cli.mjs"
+    "clubhouse": "node src/clubhouse-cli.mjs",
+    "crew": "node src/porch-crew-cli.mjs"
   },
   "license": "MIT"
 }

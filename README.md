@@ -87,9 +87,23 @@ node src/clubhouse-cli.mjs decide <proposal-uuid> ACCEPTED "Reviewed locally" --
 
 These receipt files stay under ignored `data/crew/`. They are checksum-protected against accidental changes, **not signed, tamper-proof, append-only, or backed by authenticated identities**. See [Clubhouse rules](docs/CLUBHOUSE.md). The local dashboard has a read-only clubhouse view at `#clubhouse`. The public GitPage uses separate fictional examples.
 
+## The Porch Crew R1-A: independent Git integrity worker
+
+The Porch Crew first slice runs **real local Git object integrity checks** using `git fsck`. This is not automated testing, authenticated CI, a sandbox, or permission to merge. Neither GitHub nor GitHub Actions is needed to queue or execute a check.
+
+```bash
+node src/porch-crew-cli.mjs enqueue hello-world
+node src/porch-crew-cli.mjs work-once
+node src/porch-crew-cli.mjs list
+```
+
+First create `hello-world` and push a real commit. Empty repositories cannot pass integrity checks. The running local dashboard shows the read-only Workshop at `http://127.0.0.1:3690/#workshop`, and read-only JSON at `GET /api/porch-crew`.
+
+`PASS` means **Git integrity check passed for the recorded HEAD**, *not* a project build, test, or security audit. Changed repository HEAD => `STALE`. A killed worker remains `RUNNING_UNCERTAIN`, never green. An exclusive `data/porch-crew/worker.lock` prevents two workers from running together; after a crash, inspect and back up the queue before manually addressing the lock. Read [Porch Crew safety and recovery](docs/PORCH_CREW.md).
+
 ## NOT yet implemented
 
-Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, independent CI, job isolation, artifact attestation, automated mirroring, TMC integration, or production network deployment.
+Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, sandboxed CI, job isolation, artifact attestation, automated mirroring, TMC integration, or production network deployment.
 
 ```text
 Browser (http://127.0.0.1:3690)      Git client
