@@ -3,7 +3,8 @@
 // This never asserts the underlying job ran honestly or independently.
 import {createHash,createPrivateKey,createPublicKey,generateKeyPairSync,sign,verify} from 'node:crypto';
 import {mkdir,open,readFile} from 'node:fs/promises';
-import {join,dirname} from 'node:path';
+import {join,dirname,resolve,relative,isAbsolute} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {canonical,verifyEnvelope} from './evidence-signatures.mjs';
 
 export const WITNESS_SCHEMA='gitporch-offline-witness/v1';
@@ -20,12 +21,26 @@ function reportHash(report){
  // Bind the entire operator report, including the original operator signature.
  return createHash('sha256').update(canonical(report),'utf8').digest('hex');
 }
+// Never generate keys in the repository's tracked tree or GitHub Pages.
+const sourceRoot=resolve(fileURLToPath(new URL('..',import.meta.url)));
+function inside(root,path){
+ const rel=relative(root,path);
+ return rel===''||(!rel.startsWith('..'+requireSeparator())&&rel!=='..'&&!isAbsolute(rel));
+}
+function requireSeparator(){return process.platform==='win32'?'\\':'/';}
+function keyDirectoryAllowed(directory){
+ const target=resolve(directory);
+ if(inside(sourceRoot,target)&&!inside(join(sourceRoot,'data'),target))
+  throw Error('Private witness keys must be outside tracked source (or under Git-ignored data/)');
+ return target;
+}
 async function fresh(path,value,mode=0o600){
  await mkdir(dirname(path),{recursive:true,mode:0o700});
  const fd=await open(path,'wx',mode);
  try{await fd.writeFile(value);await fd.sync();}finally{await fd.close();}
 }
 export async function generateWitnessKeys(dir){
+ dir=keyDirectoryAllowed(dir);
  await mkdir(dir,{recursive:true,mode:0o700});
  const {privateKey,publicKey}=generateKeyPairSync('ed25519');
  const privatePath=join(dir,'witness-private.pem');

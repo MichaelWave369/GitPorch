@@ -68,3 +68,9 @@ test('witness generation will not overwrite key files',()=>workspace(async root=
  await generateWitnessKeys(directory);
  await assert.rejects(generateWitnessKeys(directory),/EEXIST/);
 }));
+
+test('private key destination guard rejects Pages and tracked source folders',()=>workspace(async root=>{
+ await assert.rejects(generateWitnessKeys(new URL('../docs/witness-insecure',import.meta.url).pathname),/outside tracked source/);
+ const keys=await generateWitnessKeys(join(root,'safe'));
+ assert.match(keys.fingerprint,/^sha256:/);
+}));
