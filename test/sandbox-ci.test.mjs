@@ -4,7 +4,7 @@ import {mkdtemp,rm,readFile,writeFile,rename} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createRepo,git} from '../src/git.mjs';
-import {dockerPlan,parseTap,enqueue,workOnce,snapshot} from '../src/sandbox-ci.mjs';
+import {dockerPlan,parseTap,enqueue,workOnce,snapshot,preflightImage} from '../src/sandbox-ci.mjs';
 const IMAGE='sha256:'+'a'.repeat(64);
 const TAP='TAP version 13\nok 1 - test one\n1..1\n# tests 1\n# pass 1\n# fail 0\n# skipped 0\n';
 async function fixture(fn){
@@ -19,7 +19,7 @@ async function fixture(fn){
 }
 const mock=(e,args)=> {
  if(e!=='docker')throw Error('Unexpected binary');
- if(args[0]==='image')return Promise.resolve({exitCode:0,stdout:IMAGE,timeout:false});
+ if(args[0]==='image')return Promise.resolve({exitCode:0,stdout:JSON.stringify({Id:IMAGE,RepoDigests:[]}),timeout:false});
  assert.equal(args[0],'run');
  assert.ok(args.includes('none'));
  assert.ok(args.includes('--cap-drop'));
@@ -41,8 +41,8 @@ test('Docker invocation is fixed, offline and least-privilege',()=>{
 });
 test('TAP parser rejects zero tests and nonzero exit codes',()=>{
  assert.equal(parseTap(TAP,0).outcome,'PASS');
- assert.equal(parseTap('TAP version 13\n# tests 0\n# pass 0\n# fail 0\n# skipped 0\n',0).outcome,'NO_TESTS');
- assert.equal(parseTap(TAP,1).outcome,'FAIL');
+ assert.equal(parseTap('TAP version 13\n1..0\n# tests 0\n# pass 0\n# fail 0\n# skipped 0\n',0).outcome,'NO_TESTS');
+ assert.equal(parseTap(TAP,1).outcome,'ERROR'); // nonzero exit without failed tests is an infrastructure anomaly
  assert.equal(parseTap('random output',0).outcome,'ERROR');
 });
 test('real pinned Git archive + fake Docker runner yields labeled result only',()=>fixture(async root=>{
@@ -51,6 +51,7 @@ test('real pinned Git archive + fake Docker runner yields labeled result only',(
  const result=await workOnce(root,{execute:mock});
  assert.equal(result.outcome,'PASS');
  assert.equal(result.counts.tests,1);
+ assert.ok((await snapshot(root)).jobs[0].evidence?.stdoutSha256);
  const jobs=await snapshot(root);
  assert.equal(jobs.jobs[0].status,'DONE');
  assert.equal(jobs.assurance,'DOCKER_EXIT_AND_TAP_NOT_SIGNED_ATTESTATION');
@@ -79,3 +80,25 @@ test('explicit immutable image and genuine commit required',()=>fixture(async ro
  await assert.rejects(enqueue(root,'Garden','node:22-alpine'),/Immutable/);
  await assert.rejects(enqueue(root,'missing',IMAGE),/not found/);
 }));
+
+test('mismatched local image metadata is an ERROR, never a passing test',()=>fixture(async root=>{
+ await enqueue(root,'Garden',IMAGE);
+ let ran=false;
+ const response=await workOnce(root,{execute:async(binary,args)=>{
+  if(args[0]==='image')return {exitCode:0,stdout:JSON.stringify({Id:'sha256:'+'b'.repeat(64)}),timeout:false};
+  ran=true;return {exitCode:0,stdout:TAP,timeout:false};
+ }});
+ assert.equal(response.outcome,'ERROR');assert.equal(ran,false);
+}));
+
+test('preflight inspects pinned local image without launching containers',async()=>{
+ let commands=[];
+ const result=await preflightImage(IMAGE,{execute:async(binary,args)=>{
+  commands.push([binary,...args]);
+  return {exitCode:0,stdout:JSON.stringify({Id:IMAGE,RepoDigests:[]}),timeout:false};
+ }});
+ assert.equal(result.ready,true);assert.equal(result.observedImageId,IMAGE);
+ assert.equal(commands.length,1);assert.equal(commands[0][1],'image');
+ const mismatch=await preflightImage(IMAGE,{execute:async()=>({exitCode:0,stdout:JSON.stringify({Id:'sha256:'+'b'.repeat(64)}),timeout:false})});
+ assert.equal(mismatch.ready,false);
+});

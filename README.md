@@ -110,6 +110,7 @@ This adds an **optional local test runner** for Node.js repositories. Unlike R1-
 docker pull node:22-alpine
 docker image inspect --format '{{.Id}}' node:22-alpine
 # Copy the returned sha256:<64-hex> image ID below.
+node src/sandbox-cli.mjs preflight sha256:<64-hex-image-id>
 node src/sandbox-cli.mjs enqueue hello-world sha256:<64-hex-image-id>
 node src/sandbox-cli.mjs work-once --i-approve-container-tests
 node src/sandbox-cli.mjs list
@@ -117,7 +118,9 @@ node src/sandbox-cli.mjs list
 
 The worker stages the pinned repository commit as a tar archive, then uses `docker run` with `--pull=never`, `--network none`, `--read-only`, dropped capabilities, non-root user, a bounded tmpfs, CPU/memory/PID limits and a 90-second deadline. Its command is fixed to built-in Node tests; no repo-provided GitHub Actions YAML is read. Docker isolation still has residual risks, and **this is intended only for trusted local repositories**.
 
-See [R1-B operator guide](docs/SANDBOX_TESTS.md) for limitations, status semantics and recovery. The local read-only dashboard shows these receipts at `http://127.0.0.1:3690/#sandbox`. Public GitHub Pages receives no job data.
+**R1-C evidence hardening:** The worker compares the inspected local Docker image ID (or explicitly matching RepoDigest) to the immutable image recorded in the queued job. It rejects mismatches before running tests, requires a consistent TAP summary, and stores SHA-256 hashes of container stdout/stderr alongside the observed image ID and Docker CLI exit status. This is local metadata, **not a signed attestation or proof of independence**. `preflight` inspects the image without launching it. Real Docker and full Windows verification are still required.
+
+See [R1-B/C operator guide](docs/SANDBOX_TESTS.md) for limitations, status semantics and recovery. The local read-only dashboard shows these receipts at `http://127.0.0.1:3690/#sandbox`. Public GitHub Pages receives no job data.
 
 ## NOT yet implemented
 
