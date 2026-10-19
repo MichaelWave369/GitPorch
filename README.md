@@ -136,9 +136,21 @@ node src/recovery-cli.mjs abandon tests <job-id> "Container inspected and stoppe
 
 The only permitted manual outcome is **`ABORTED_UNVERIFIED`**, never a pass or successful test. Existing worker locks cause recovery to refuse, and it does not kill processes, remove locks or re-run tests. A partial manual recovery can be completed only when its existing checksum-validated abandonment receipt has the same operator reason. **Never delete a lock until independently verifying no worker/container is running and backing up your local data.** See [Safe Recovery Guide](docs/RECOVERY.md). No signed attestations or automated restart safety claims are made.
 
+## R1-D2: Offline signed local reports
+
+A completed Git integrity check or opt-in Docker test run can be **manually signed** with an Ed25519 key stored only on the local machine. Another person can verify the signature **offline** using a separately trusted public key. **A valid signature proves who held the signing key and that signed bytes have not changed, not that the run was truthful, independently witnessed or passed.** The private key generated in this first pilot is **unencrypted**; protect it with OS ACLs and never publish it.
+
+```powershell
+node src/evidence-cli.mjs keygen --i-accept-unencrypted-private-key
+node src/evidence-cli.mjs sign git <completed-job-id> .\git-report.json --i-attest-local-result
+node src/evidence-cli.mjs verify .\git-report.json .\data\signer\operator-public.pem
+```
+
+Signing does not run any tests, overwrite completed results, or change the underlying outcome. Signed JSON can reveal repository names and commit identities, so share only deliberately. [Read the signing and verification guide](docs/SIGNED_EVIDENCE.md).
+
 ## NOT yet implemented
 
-Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, signed artifact attestation, automated mirroring, TMC integration, or production network deployment.
+Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, independently witnessed build attestations, automated mirroring, TMC integration, or production network deployment.
 
 ```text
 Browser (http://127.0.0.1:3690)      Git client
