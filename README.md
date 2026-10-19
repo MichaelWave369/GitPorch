@@ -101,9 +101,27 @@ First create `hello-world` and push a real commit. Empty repositories cannot pas
 
 `PASS` means **Git integrity check passed for the recorded HEAD**, *not* a project build, test, or security audit. Changed repository HEAD => `STALE`. A killed worker remains `RUNNING_UNCERTAIN`, never green. An exclusive `data/porch-crew/worker.lock` prevents two workers from running together; after a crash, inspect and back up the queue before manually addressing the lock. Read [Porch Crew safety and recovery](docs/PORCH_CREW.md).
 
+## The Porch Crew R1-B: opt-in container tests
+
+This adds an **optional local test runner** for Node.js repositories. Unlike R1-A's Git integrity-only check, the R1-B worker actually executes `node --test --test-reporter=tap` **inside** a restricted Docker container. It requires Docker Engine installed and an **already-loaded, immutable Node 22 Alpine image**. It **never installs packages**, downloads images, pulls dependencies, or runs repository scripts on your Windows host.
+
+```powershell
+# Only on your local PC, when Docker is installed and trusted:
+docker pull node:22-alpine
+docker image inspect --format '{{.Id}}' node:22-alpine
+# Copy the returned sha256:<64-hex> image ID below.
+node src/sandbox-cli.mjs enqueue hello-world sha256:<64-hex-image-id>
+node src/sandbox-cli.mjs work-once --i-approve-container-tests
+node src/sandbox-cli.mjs list
+```
+
+The worker stages the pinned repository commit as a tar archive, then uses `docker run` with `--pull=never`, `--network none`, `--read-only`, dropped capabilities, non-root user, a bounded tmpfs, CPU/memory/PID limits and a 90-second deadline. Its command is fixed to built-in Node tests; no repo-provided GitHub Actions YAML is read. Docker isolation still has residual risks, and **this is intended only for trusted local repositories**.
+
+See [R1-B operator guide](docs/SANDBOX_TESTS.md) for limitations, status semantics and recovery. The local read-only dashboard shows these receipts at `http://127.0.0.1:3690/#sandbox`. Public GitHub Pages receives no job data.
+
 ## NOT yet implemented
 
-Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, sandboxed CI, job isolation, artifact attestation, automated mirroring, TMC integration, or production network deployment.
+Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, signed artifact attestation, automated mirroring, TMC integration, or production network deployment.
 
 ```text
 Browser (http://127.0.0.1:3690)      Git client

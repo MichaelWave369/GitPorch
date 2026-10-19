@@ -18,3 +18,7 @@
 .workshop-stats{font:normal 17px Georgia,serif;color:var(--gold);padding:13px 0}
 #workshop-jobs .club-row{padding:10px 0}
 #workshop-jobs .club-row small{color:#9db39f}
+
+/* R1-B opt-in container test receipts. No dashboard mutation controls. */
+#sandbox .club-row{border-top:1px solid #38503e;padding:12px 0}
+#sandbox .club-row small{color:#a5bba9}

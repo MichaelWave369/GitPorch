@@ -16,7 +16,7 @@
   <a href="#home" class="active">⌂ <span>Front Porch</span></a>
   <a href="#repositories">⑂ <span>Repositories</span></a>
   <a href="#clubhouse">◇ <span>PhiBots Clubhouse</span></a>
-  <a href="#workshop">⚒ <span>The Workshop</span><i>R1-A</i></a>
+  <a href="#workshop">⚒ <span>The Workshop</span><i>R1-B</i></a>
   <a href="#crew">⌘ <span>Porch Crew</span><i>R1</i></a>
   <a href="#ledger">▤ <span>The Ledger</span></a>
   <a href="#start">◇ <span>Getting Started</span></a>
@@ -32,7 +32,7 @@
 <div class="hero-bottom"><span>⌁ &nbsp; BUILT ON GIT, NOT GITHUB ACTIONS.</span><span>✦ &nbsp; LEDGER ABOVE EGO.</span></div>
 </section>
 <div id="notice" class="notice" role="status">Checking for a running local Git service...</div>
-<div class="stats"><article><small>REPOSITORIES &nbsp; ⑂</small><strong id="repo-count">—</strong><span>Local Git homestead</span></article><article><small>BRANCHES &nbsp; ⌁</small><strong id="branch-count">—</strong><span>Across local repos</span></article><article><small>GIT TRANSPORT &nbsp; ⇄</small><strong id="transport" class="word">CHECKING</strong><span>Loopback-only, read-only</span></article><article><small>THE PORCH CREW &nbsp; ⚒</small><strong class="word">R1-A</strong><span>Git fsck jobs only · not CI</span></article></div>
+<div class="stats"><article><small>REPOSITORIES &nbsp; ⑂</small><strong id="repo-count">—</strong><span>Local Git homestead</span></article><article><small>BRANCHES &nbsp; ⌁</small><strong id="branch-count">—</strong><span>Across local repos</span></article><article><small>GIT TRANSPORT &nbsp; ⇄</small><strong id="transport" class="word">CHECKING</strong><span>Loopback-only, read-only</span></article><article><small>THE PORCH CREW &nbsp; ⚒</small><strong class="word">R1-B</strong><span>Opt-in Docker test workers</span></article></div>
 <section id="repositories" class="section"><div class="heading"><div><small>YOUR OWN CORNER OF THE INTERNET</small><h2>Repositories <em>on the porch.</em></h2><p>Bare Git repositories from your machine. No cloud required.</p></div><a class="btn outline" href="#start">+ New repository ↘</a></div>
 <div class="columns"><div class="repos" id="repos"></div><div class="ledger" id="ledger"><div class="ledger-head"><span>▤</span><div><strong>The Ledger</strong><small>RECENT COMMIT EVIDENCE</small></div></div><div class="history" id="history">Select a repository to inspect its history.</div><div class="ledger-foot">No invented build results. Only Git evidence.</div></div></div>
 </section>
@@ -48,6 +48,15 @@
 <div class="club-pane"><h3>Worker queue <small>REAL LOCAL COUNTS</small></h3><div class="workshop-stats" id="workshop-counts" aria-live="polite">Checking queue receipts...</div></div>
 <div class="club-pane"><h3>Job receipts <small>GIT FSCK ONLY · NOT CI</small></h3><div id="workshop-jobs">Checking local receipts...</div></div>
 </div><p class="club-note">Only local operator CLI commands enqueue or execute jobs. Jobs that outlive their worker are flagged uncertain, never automatically promoted to pass. Use <code>node src/porch-crew-cli.mjs list</code> for full records. No build scripts or untrusted code are executed.</p>
+</section>
+<section id="sandbox" class="section">
+<div class="heading"><div><small>R1-B · EXPLICIT OPERATOR-APPROVED CONTAINER TESTS</small><h2>Testing in the <em>tool shed.</em></h2>
+<p>Actual local Node test runs in a constrained Docker container, never on the host. Requires Docker and an image pinned to its immutable ID or digest.</p></div></div>
+<div class="clubhouse-grid">
+<div class="club-pane"><h3>Container jobs <small>REAL LOCAL JOB COUNTS</small></h3><div id="sandbox-counts" class="workshop-stats">Reading local job receipts...</div></div>
+<div class="club-pane"><h3>Test receipts <small>CONTAINER-REPORTED · NOT SIGNED</small></h3><div id="sandbox-jobs" role="list">Reading test results...</div></div>
+</div>
+<p class="club-note">No auto-run, remote job submissions, or project scripts on Windows. Only the operator can enqueue and run via <code>node src/sandbox-cli.mjs</code>. Workers use a preloaded immutable Docker image, no container network, read-only filesystem, dropped capabilities and limits. These controls reduce risk but are not a guarantee against container escapes. Run only code you're prepared to test on your Docker host.</p>
 </section>
 <section class="section" id="start"><div class="heading"><div><small>FIRST STEPS</small><h2>Make yourself <em>at home.</em></h2><p>Three commands, one porch. Works even when GitHub doesn't.</p></div></div>
 <div class="steps"><article><small>01 / CREATE</small><h3>Plant the first post.</h3><p>Create your first bare repository.</p><code>node src/cli.mjs init hello-world</code><button data-copy="node src/cli.mjs init hello-world">Copy command</button></article><article><small>02 / SERVE</small><h3>Light up the porch.</h3><p>Run the local dashboard and Git daemon.</p><code>npm start</code><button data-copy="npm start">Copy command</button></article><article><small>03 / VERIFY</small><h3>Check the floorboards.</h3><p>Verify Git object integrity, not CI.</p><code>node src/cli.mjs verify hello-world</code><button data-copy="node src/cli.mjs verify hello-world">Copy command</button></article></div>

@@ -116,3 +116,30 @@ async function refreshWorkshop(){
  }
 }
 refreshWorkshop();
+
+async function refreshSandbox(){
+ const counts=document.getElementById('sandbox-counts');
+ const items=document.getElementById('sandbox-jobs');
+ if(!counts||!items)return;
+ const make=(tag,t,cl='')=>{const e=document.createElement(tag);e.textContent=String(t);if(cl)e.className=cl;return e;};
+ try{
+  const response=await fetch('/api/sandbox-tests',{cache:'no-store'});
+  if(!response.ok)throw Error('Local test results not available');
+  const snap=await response.json();
+  if(snap.assurance!=='DOCKER_EXIT_AND_TAP_NOT_SIGNED_ATTESTATION')throw Error('Unexpected receipt contract');
+  counts.replaceChildren(make('p','Queued '+snap.counts.queued+' · Uncertain '+snap.counts.runningUncertain+' · Completed '+snap.counts.done));
+  items.replaceChildren();
+  if(!snap.jobs.length){items.append(make('p','No container jobs yet. The tool shed is quiet.','club-empty'));return;}
+  for(const job of snap.jobs.slice(0,10)){
+   const row=make('div','','club-row');
+   const state=job.status==='DONE'?'CONTAINER '+job.outcome:job.status==='RUNNING_UNCERTAIN'?'INTERRUPTED / UNVERIFIED':'QUEUED / NOT RUN';
+   const results=job.counts?(' · '+job.counts.pass+'/'+job.counts.tests+' tests passed'):'';
+   row.append(make('strong',job.repo+' · '+state),make('small',job.commit.slice(0,12)+results+' · '+job.kind));
+   items.append(row);
+  }
+ }catch{
+  counts.replaceChildren(make('p','No verified local test summary available.','club-empty'));
+  items.replaceChildren(make('p','Receipt state unavailable or failed validation.','club-empty'));
+ }
+}
+refreshSandbox();
