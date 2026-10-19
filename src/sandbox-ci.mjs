@@ -98,10 +98,11 @@ export function parseTap(output,code){
  const num=label=>{const matches=[...String(output).matchAll(new RegExp('^# '+label+' (\\d+)$','gm'))];return matches.length?Number(matches.at(-1)[1]):null;};
  const counts={tests:num('tests'),pass:num('pass'),fail:num('fail'),skipped:num('skipped')};
  const valid=Object.values(counts).every(n=>Number.isSafeInteger(n)&&n>=0);
- if(code===0&&!valid)return {outcome:'ERROR',counts:null};
+ if(!valid)return {outcome:'ERROR',counts:null};
  if(code===0&&counts.tests===0)return {outcome:'NO_TESTS',counts};
  if(code===0&&counts.pass>0&&counts.fail===0&&counts.tests>=counts.pass)return {outcome:'PASS',counts};
- return {outcome:code===0?'NO_TESTS':'FAIL',counts:valid?counts:null};
+ if(code!==0)return {outcome:counts.fail>0?'FAIL':'ERROR',counts};
+ return {outcome:'ERROR',counts};
 }
 function runCommand(exe,args,timeoutMs=90000,maxOutput=256*1024){
  return new Promise((resolve,reject)=>{
@@ -173,7 +174,11 @@ export async function workOnce(d,{execute=runCommand}={}){
       const inspected=await execute('docker',['image','inspect','--format','{{.Id}}',job.image],10000);
       if(inspected.exitCode!==0||inspected.timeout)throw Error('Pinned local Docker image unavailable');
       const result=await execute('docker',dockerPlan(job.image,tar,'gitporch-ci-'+id),90000);
-      if(result.timeout)throw Error('Container timed out or exceeded log cap');
+      if(result.timeout){
+        // Killing Docker's CLI is not enough: remove the named container as well.
+        await execute('docker',['rm','-f','gitporch-ci-'+id],10000).catch(()=>{});
+        throw Error('Container timed out or exceeded log cap');
+      }
       const parsed=parseTap(result.stdout,result.exitCode);
       outcome=parsed.outcome;counts=parsed.counts;
       if((await head(d,job.repo))!==job.commit)outcome='STALE';
