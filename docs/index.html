@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#15251c">
+<meta name="description" content="Meet The GitPorch: a local-first Git home for your code. Explore the interactive public demo, then run the real service on your own machine.">
+<title>The GitPorch | Pull up a chair. Push some code.</title>
+<link rel="stylesheet" href="./styles.css"><script src="./app.js" defer></script>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a href="#home" class="brand"><span class="house">⌂</span><span><strong>Git<span>Porch</span></strong><small>THE BUILDER'S HOMESTEAD</small></span></a>
+  <div class="nav-title">THE HOMESTEAD</div>
+  <nav>
+  <a href="#home" class="active">⌂ <span>Front Porch</span></a>
+  <a href="#repositories">⑂ <span>Explore Demo</span></a>
+  <a href="#crew">⌘ <span>Porch Crew</span><i>R1</i></a>
+  <a href="#ledger">▤ <span>Demo Ledger</span></a>
+  <a href="#features">✳ <span>What Works</span></a>
+  <a href="#start">◇ <span>Getting Started</span></a>
+  </nav>
+  <div class="side-foot"><span>✳</span><strong>Made for the long haul.</strong><p>Local-first Git hosting. Real code stays on your computer. Sample code lives here.</p><small>GITPORCH / R0.1.0</small></div>
+</aside>
+<main id="home">
+<header class="topbar"><span>THE HOMESTEAD &nbsp; / &nbsp; <b>PUBLIC FRONT PORCH</b></span><div class="right"><a class="toplink" href="https://github.com/MichaelWave369/GitPorch" target="_blank" rel="noopener noreferrer">VIEW SOURCE ↗</a><span id="status" aria-label="Showcase mode">● &nbsp; SHOWCASE MODE</span><span class="avatar">GP</span></div></header>
+<section class="hero">
+<div class="hero-eyebrow">✳ &nbsp; YOUR CODE. YOUR PORCH. YOUR RULES. <span>OPEN SOURCE · R0.1</span></div>
+<div class="hero-content"><h1>Well, git on<br><em>up here.</em></h1><p>Your own little corner of Git country. Host real repositories locally, inspect what changed, and build toward an independent development forge. This public porch is an interactive demo.</p><div class="actions"><a class="btn filled" href="#repositories">Take the porch tour ↗</a><a class="btn outline" href="#start">Run it on your PC →</a></div></div>
+<div class="art" aria-hidden="true"><span class="moon"></span><span class="hill"></span><span class="cabin"><span class="roof"></span><span class="home">▣ ▥ ▣</span></span></div>
+<div class="hero-bottom"><span>⌁ &nbsp; LOCAL GIT HOSTING · NO BUILD CLOUD REQUIRED.</span><span>✦ &nbsp; LEDGER ABOVE EGO.</span></div>
+</section>
+<div id="notice" class="notice demo" role="status"><strong>PUBLIC SHOWCASE · SYNTHETIC DATA</strong> All repositories, branches, commit messages and statistics below are fictional examples. The real GitPorch service runs only on your own machine.</div>
+<div class="stats"><article><small>DEMO REPOSITORIES &nbsp; ⑂</small><strong id="repo-count">—</strong><span>Fictional examples only</span></article><article><small>DEMO BRANCHES &nbsp; ⌁</small><strong id="branch-count">—</strong><span>Fictional branch inventory</span></article><article><small>PUBLIC PAGE &nbsp; ⇄</small><strong id="transport" class="word">STATIC</strong><span>No live Git transport here</span></article><article><small>THE PORCH CREW &nbsp; ⚒</small><strong class="word">R1 PLANNED</strong><span>Independent local CI, not yet shipped</span></article></div>
+<section id="repositories" class="section"><div class="heading"><div><small>TRY THE INTERACTIVE SHOWCASE</small><h2>Repos <em>on the porch.</em></h2><p>Browse fictional projects and evidence trails. Nothing below is a live remote repository.</p></div><a class="btn outline" href="https://github.com/MichaelWave369/GitPorch" target="_blank" rel="noopener noreferrer">View actual source ↗</a></div>
+<div class="demo-toolbar"><label for="repo-filter">Find a demo repository</label><input id="repo-filter" type="search" placeholder="Search the fictional porch projects..." autocomplete="off" aria-controls="repos"><span>All entries marked DEMO</span></div><div class="columns"><div class="repos" id="repos"></div><div class="ledger" id="ledger"><div class="ledger-head"><span>▤</span><div><strong>The Ledger</strong><small>FICTIONAL COMMIT EXAMPLES</small></div></div><div class="history" id="history">Select a repository to inspect its history.</div><div class="ledger-foot">All displayed commits on this public demo are synthetic. The local app reads actual Git history.</div></div></div>
+</section>
+<section class="section" id="features"><div class="heading"><div><small>BUILT FIRST, PROMISED LATER</small><h2>Real floorboards. <em>No fake green lights.</em></h2><p>R0 works locally; future pieces are marked planned.</p></div></div>
+<div class="feature-grid">
+  <article><small>SHIPPED · R0</small><h3>Local Git homestead</h3><p>Create bare repositories, push over a local filesystem remote, inspect branches and commit history.</p></article>
+  <article><small>SHIPPED · R0</small><h3>Read-only clones</h3><p>Clone via a loopback-only git:// endpoint. Network pushes are disabled by design.</p></article>
+  <article><small>SHIPPED · R0</small><h3>Integrity checks</h3><p>Run Git object validation locally. This is not a CI pass or a security certification.</p></article>
+  <article><small>PLANNED · R1+</small><h3>The Porch Crew</h3><p>Independent build queues, isolated workers, evidence receipts, reviews and authentication come later.</p></article>
+</div></section>
+<section class="section" id="start"><div class="heading"><div><small>REAL GITPORCH · RUNS LOCALLY</small><h2>Make yourself <em>at home.</em></h2><p>Install the real service on your own Windows, Linux or macOS machine. Node.js 20+ and Git required.</p></div></div>
+<div class="steps"><article><small>01 / CLONE SOURCE</small><h3>Bring home the plans.</h3><p>Get the source repository onto your machine.</p><code>git clone https://github.com/MichaelWave369/GitPorch.git</code><button data-copy="git clone https://github.com/MichaelWave369/GitPorch.git">Copy command</button></article><article><small>02 / SERVE</small><h3>Light up the porch.</h3><p>Inside the cloned GitPorch folder, start the loopback-only service.</p><code>npm start</code><button data-copy="npm start">Copy command</button></article><article><small>03 / CREATE</small><h3>Plant the first post.</h3><p>Create a real local repository using the CLI.</p><code>node src/cli.mjs init hello-world</code><button data-copy="node src/cli.mjs init hello-world">Copy command</button></article></div>
+</section>
+<section id="crew" class="crew"><div><small>UP NEXT: THE PORCH CREW</small><h2>Our build runners. <em>Our rules.</em></h2><p>R1 is planned: independently queued work, isolated runners, trustworthy logs and test receipts. No CI is running in this public demo. No build gets a green badge unless it truly passes.</p></div><div class="stamp">⚒<strong>R1</strong><small>PLANNED</small></div></section>
+<footer><span>THE GITPORCH · PHI369</span><a href="https://github.com/MichaelWave369/GitPorch" target="_blank" rel="noopener noreferrer">SOURCE / MIT LICENSE ↗</a><span>PULL UP A CHAIR. PUSH SOME CODE.</span><span>BUILD OUTWARD · CIRCLE BACK</span></footer>
+</main>
+</div>
+</body>
+</html>
