@@ -60,3 +60,32 @@ for(const b of document.querySelectorAll('button[data-copy]'))b.addEventListener
  try{await navigator.clipboard.writeText(b.dataset.copy);b.textContent='Copied!'}catch{b.textContent='Select the code above'}
 });
 load();
+
+async function refreshClubhouse(){
+ const members=document.getElementById('club-members');
+ const proposals=document.getElementById('club-proposals');
+ if(!members||!proposals)return;
+ const safe=(name,klass,text)=>{const e=document.createElement(name);if(klass)e.className=klass;e.textContent=String(text);return e};
+ try{
+  const response=await fetch('/api/clubhouse',{cache:'no-store'});
+  if(!response.ok)throw Error('Crew data unavailable');
+  const crew=await response.json();
+  members.replaceChildren();proposals.replaceChildren();
+  if(!crew.members.length)members.append(safe('p','club-empty','No members registered. The rocking chairs are waiting.'));
+  else for(const m of crew.members){
+   const card=safe('div','club-row','');
+   card.append(safe('strong','',m.displayName),safe('small','',m.id+' · '+m.role.toUpperCase()));
+   members.append(card);
+  }
+  if(!crew.proposals.length)proposals.append(safe('p','club-empty','No proposals yet. Nobody has claimed a green build.'));
+  else for(const p of crew.proposals.slice(-12).reverse()){
+   const card=safe('div','club-row','');
+   card.append(safe('strong','',p.summary),safe('small','',p.memberId+' → '+p.repoName+' @ '+p.commit.slice(0,9)),safe('small','',p.decision+' · NOT A CI RESULT'));
+   proposals.append(card);
+  }
+ }catch(e){
+  members.replaceChildren(safe('p','club-empty','Local crew records could not be verified.'));
+  proposals.replaceChildren(safe('p','club-empty','Records are withheld when their integrity cannot be checked.'));
+ }
+}
+refreshClubhouse();

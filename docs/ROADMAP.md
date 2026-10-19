@@ -3,6 +3,7 @@
 | Milestone | Function | Status |
 | --- | --- | --- |
 | R0 | Local bare Git hosting, loopback-only clone daemon, read-only browser dashboard, native tests | Implemented in merged PR #1 |
+| R0.3 | PhiBots Clubhouse: local commit-linked proposals and operator review notes; public fictional showcase | Proposed PR |
 | R0.2 | Windows service packaging; checked backup/restore | Planned |
 | R1 | **The Porch Crew**: independent build queue, isolated workers, logs, verifiable evidence | Planned |
 | R2 | Authenticated SSH push, users, repo permissions and receipts | Planned |

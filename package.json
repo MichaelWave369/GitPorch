@@ -4,14 +4,17 @@
   "private": true,
   "description": "The GitPorch: a local-first Git repository porch and read-only dashboard",
   "type": "module",
-  "engines": {"node": ">=20"},
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/cli.mjs serve",
     "serve": "node src/cli.mjs serve",
     "test": "node --test test/*.test.mjs",
     "repos": "node src/cli.mjs list",
     "verify": "node src/cli.mjs verify",
-    "check": "npm test"
+    "check": "npm test",
+    "clubhouse": "node src/clubhouse-cli.mjs"
   },
   "license": "MIT"
 }
