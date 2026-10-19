@@ -19,7 +19,7 @@ async function fixture(fn){
 }
 const mock=(e,args)=> {
  if(e!=='docker')throw Error('Unexpected binary');
- if(args[0]==='image')return Promise.resolve({exitCode:0,stdout:IMAGE,timeout:false});
+ if(args[0]==='image')return Promise.resolve({exitCode:0,stdout:JSON.stringify({Id:IMAGE,RepoDigests:[]}),timeout:false});
  assert.equal(args[0],'run');
  assert.ok(args.includes('none'));
  assert.ok(args.includes('--cap-drop'));
@@ -51,6 +51,7 @@ test('real pinned Git archive + fake Docker runner yields labeled result only',(
  const result=await workOnce(root,{execute:mock});
  assert.equal(result.outcome,'PASS');
  assert.equal(result.counts.tests,1);
+ assert.ok((await snapshot(root)).jobs[0].evidence?.stdoutSha256);
  const jobs=await snapshot(root);
  assert.equal(jobs.jobs[0].status,'DONE');
  assert.equal(jobs.assurance,'DOCKER_EXIT_AND_TAP_NOT_SIGNED_ATTESTATION');
@@ -78,4 +79,14 @@ test('interrupted job remains uncertain; no speculative green',()=>fixture(async
 test('explicit immutable image and genuine commit required',()=>fixture(async root=>{
  await assert.rejects(enqueue(root,'Garden','node:22-alpine'),/Immutable/);
  await assert.rejects(enqueue(root,'missing',IMAGE),/not found/);
+}));
+
+test('mismatched local image metadata is an ERROR, never a passing test',()=>fixture(async root=>{
+ await enqueue(root,'Garden',IMAGE);
+ let ran=false;
+ const response=await workOnce(root,{execute:async(binary,args)=>{
+  if(args[0]==='image')return {exitCode:0,stdout:JSON.stringify({Id:'sha256:'+'b'.repeat(64)}),timeout:false};
+  ran=true;return {exitCode:0,stdout:TAP,timeout:false};
+ }});
+ assert.equal(response.outcome,'ERROR');assert.equal(ran,false);
 }));

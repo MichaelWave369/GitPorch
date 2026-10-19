@@ -6,6 +6,8 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawn} from 'node:child_process';
 import {git,repoRoot,listRepos,validSlug} from './git.mjs';
+import {parseTap,verifyImageIdentity,executionEvidence,evidenceShapeValid} from './runner-evidence.mjs';
+export {parseTap} from './runner-evidence.mjs';
 
 const SCHEMA='gitporch-isolated-tests/0.1';
 const IMAGE=/^(?:sha256:[0-9a-f]{64}|node:22-alpine@sha256:[0-9a-f]{64})$/;
@@ -43,6 +45,8 @@ function assertJob(j,id){
 }
 function assertResult(r,id){
  if(r.schema!==SCHEMA||r.id!==id||!['PASS','FAIL','ERROR','STALE','NO_TESTS'].includes(r.outcome)||!Number.isInteger(r.durationMs)||r.durationMs<0)throw Error('Invalid isolated test result');
+ if(r.evidence!=null&&!evidenceShapeValid(r.evidence))throw Error('Invalid container evidence metadata');
+ if(r.outcome==='PASS'&&(!r.counts||!Number.isSafeInteger(r.counts.pass)||r.counts.pass<1||r.evidence?.dockerCliExitCode!==0&&r.evidence!=null))throw Error('Invalid passing test evidence');
 }
 export async function snapshot(d){
  const [pending,running,done,results]=await Promise.all([...STATES,'results'].map(k=>names(d,k)));
@@ -54,13 +58,13 @@ export async function snapshot(d){
  for(const [name,state] of seen){
   const id=name.slice(0,-5),kind=state==='QUEUED'?'pending':state==='DONE'?'done':'running';
   const j=await get(join(dir(d,kind),name));assertJob(j,id);
-  let outcome=null,counts=null;
+  let outcome=null,counts=null,evidence=null;
   if(found.has(name)){
    const r=await get(join(dir(d,'results'),name));assertResult(r,id);
    if(state==='QUEUED')throw Error('Queued job already has result');
-   if(state==='DONE'){outcome=r.outcome;counts=r.counts;}
+   if(state==='DONE'){outcome=r.outcome;counts=r.counts;evidence=r.evidence??null;}
   }else if(state==='DONE')throw Error('Completed test job lacks a result');
-  jobs.push({id,repo:j.repo,commit:j.commit,image:j.image,queuedAt:j.queuedAt,status:state,outcome,counts,kind:j.type});
+  jobs.push({id,repo:j.repo,commit:j.commit,image:j.image,queuedAt:j.queuedAt,status:state,outcome,counts,evidence,kind:j.type});
  }
  jobs.sort((a,b)=>b.id.localeCompare(a.id));
  return {mode:'LOCAL_OPERATOR_ONLY',assurance:'DOCKER_EXIT_AND_TAP_NOT_SIGNED_ATTESTATION',
@@ -93,16 +97,6 @@ export function dockerPlan(image,archive,name){
    '--mount','type=bind,source='+archive+',target=/source.tar,readonly',
    '--workdir','/workspace','--entrypoint','/bin/sh',
    image,'-ec',script];
-}
-export function parseTap(output,code){
- const num=label=>{const matches=[...String(output).matchAll(new RegExp('^# '+label+' (\\d+)$','gm'))];return matches.length?Number(matches.at(-1)[1]):null;};
- const counts={tests:num('tests'),pass:num('pass'),fail:num('fail'),skipped:num('skipped')};
- const valid=Object.values(counts).every(n=>Number.isSafeInteger(n)&&n>=0);
- if(!valid)return {outcome:'ERROR',counts:null};
- if(code===0&&counts.pass===0&&counts.fail===0)return {outcome:'NO_TESTS',counts};
- if(code===0&&counts.pass>0&&counts.fail===0&&counts.tests>=counts.pass)return {outcome:'PASS',counts};
- if(code!==0)return {outcome:counts.fail>0?'FAIL':'ERROR',counts};
- return {outcome:'ERROR',counts};
 }
 function runCommand(exe,args,timeoutMs=90000,maxOutput=256*1024){
  return new Promise((resolve,reject)=>{
@@ -166,7 +160,7 @@ export async function workOnce(d,{execute=runCommand}={}){
    catch(e){if(e.code==='ENOENT')continue;throw e;}
    const id=file.slice(0,-5),job=await get(join(dir(d,'running'),file));assertJob(job,id);
    const start=Date.now();
-   let outcome='ERROR',counts=null;
+   let outcome='ERROR',counts=null,evidence=null;
    const stage=await mkdtemp(join(tmpdir(),'gitporch-isolated-'));
    try{
     if((await head(d,job.repo))!==job.commit)outcome='STALE';
@@ -176,8 +170,9 @@ export async function workOnce(d,{execute=runCommand}={}){
      if((await head(d,job.repo))!==job.commit)outcome='STALE';
      else{
       // Refuse to pull any image. No Docker daemon socket mounted in the container.
-      const inspected=await execute('docker',['image','inspect','--format','{{.Id}}',job.image],10000);
+      const inspected=await execute('docker',['image','inspect','--format','{{json .}}',job.image],10000);
       if(inspected.exitCode!==0||inspected.timeout)throw Error('Pinned local Docker image unavailable');
+      const verifiedImage=verifyImageIdentity(job.image,inspected.stdout);
       const result=await execute('docker',dockerPlan(job.image,tar,'gitporch-ci-'+id),90000);
       if(result.timeout){
         // Killing Docker's CLI is not enough: remove the named container as well.
@@ -186,12 +181,13 @@ export async function workOnce(d,{execute=runCommand}={}){
       }
       const parsed=parseTap(result.stdout,result.exitCode);
       outcome=parsed.outcome;counts=parsed.counts;
+      evidence=executionEvidence(result,verifiedImage);
       if((await head(d,job.repo))!==job.commit)outcome='STALE';
      }
     }
    }catch(e){outcome='ERROR';counts=null;}
    finally{await rm(stage,{recursive:true,force:true});}
-   const receipt=makeRecord({schema:SCHEMA,id,outcome,counts,completedAt:new Date().toISOString(),
+   const receipt=makeRecord({schema:SCHEMA,id,outcome,counts,evidence,completedAt:new Date().toISOString(),
      durationMs:Date.now()-start,scope:'NODE_TEST_IN_DOCKER_NO_NETWORK_NO_HOST_EXEC'});
    await put(join(dir(d,'results'),file),receipt);
    await rename(join(dir(d,'running'),file),join(dir(d,'done'),file));
