@@ -99,7 +99,7 @@ export function parseTap(output,code){
  const counts={tests:num('tests'),pass:num('pass'),fail:num('fail'),skipped:num('skipped')};
  const valid=Object.values(counts).every(n=>Number.isSafeInteger(n)&&n>=0);
  if(!valid)return {outcome:'ERROR',counts:null};
- if(code===0&&counts.tests===0)return {outcome:'NO_TESTS',counts};
+ if(code===0&&counts.pass===0&&counts.fail===0)return {outcome:'NO_TESTS',counts};
  if(code===0&&counts.pass>0&&counts.fail===0&&counts.tests>=counts.pass)return {outcome:'PASS',counts};
  if(code!==0)return {outcome:counts.fail>0?'FAIL':'ERROR',counts};
  return {outcome:'ERROR',counts};
