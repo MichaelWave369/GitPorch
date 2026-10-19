@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#15251c">
+<meta name="description" content="The GitPorch. Pull up a chair. Push some code.">
+<title>The GitPorch · Pull Up a Chair. Push Some Code.</title>
+<link rel="stylesheet" href="./styles.css"><script src="./app.js" defer></script>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <a href="#home" class="brand"><span class="house">⌂</span><span><strong>Git<span>Porch</span></strong><small>THE BUILDER'S HOMESTEAD</small></span></a>
+  <div class="nav-title">THE HOMESTEAD</div>
+  <nav>
+  <a href="#home" class="active">⌂ <span>Front Porch</span></a>
+  <a href="#repositories">⑂ <span>Repositories</span></a>
+  <a href="#crew">⌘ <span>Porch Crew</span><i>R1</i></a>
+  <a href="#ledger">▤ <span>The Ledger</span></a>
+  <a href="#start">◇ <span>Getting Started</span></a>
+  </nav>
+  <div class="side-foot"><span>✳</span><strong>Made for the long haul.</strong><p>Keep your code close, your receipts closer, and the porch light on.</p><small>GITPORCH / R0.1.0</small></div>
+</aside>
+<main id="home">
+<header class="topbar"><span>THE HOMESTEAD &nbsp; / &nbsp; <b>FRONT PORCH</b></span><div class="right"><span id="status">● &nbsp; CONNECTING</span><span class="avatar">GP</span></div></header>
+<section class="hero">
+<div class="hero-eyebrow">✳ &nbsp; LOCAL-FIRST DEV INFRASTRUCTURE <span>EST. 2026 · R0</span></div>
+<div class="hero-content"><h1>Well, git on<br><em>up here.</em></h1><p>Your code. Your porch. Your rules. A place to keep your repositories without waiting for somebody else's servers to wake up.</p><div class="actions"><a class="btn filled" href="#start">Get to buildin' ↗</a><a class="btn outline" href="#repositories">Explore repositories →</a></div></div>
+<div class="art" aria-hidden="true"><span class="moon"></span><span class="hill"></span><span class="cabin"><span class="roof"></span><span class="home">▣ ▥ ▣</span></span></div>
+<div class="hero-bottom"><span>⌁ &nbsp; BUILT ON GIT, NOT GITHUB ACTIONS.</span><span>✦ &nbsp; LEDGER ABOVE EGO.</span></div>
+</section>
+<div id="notice" class="notice" role="status">Checking for a running local Git service...</div>
+<div class="stats"><article><small>REPOSITORIES &nbsp; ⑂</small><strong id="repo-count">—</strong><span>Local Git homestead</span></article><article><small>BRANCHES &nbsp; ⌁</small><strong id="branch-count">—</strong><span>Across local repos</span></article><article><small>GIT TRANSPORT &nbsp; ⇄</small><strong id="transport" class="word">CHECKING</strong><span>Loopback-only, read-only</span></article><article><small>THE PORCH CREW &nbsp; ⚒</small><strong class="word">R1 PLANNED</strong><span>Independent local CI</span></article></div>
+<section id="repositories" class="section"><div class="heading"><div><small>YOUR OWN CORNER OF THE INTERNET</small><h2>Repositories <em>on the porch.</em></h2><p>Bare Git repositories from your machine. No cloud required.</p></div><a class="btn outline" href="#start">+ New repository ↘</a></div>
+<div class="columns"><div class="repos" id="repos"></div><div class="ledger" id="ledger"><div class="ledger-head"><span>▤</span><div><strong>The Ledger</strong><small>RECENT COMMIT EVIDENCE</small></div></div><div class="history" id="history">Select a repository to inspect its history.</div><div class="ledger-foot">No invented build results. Only Git evidence.</div></div></div>
+</section>
+<section class="section" id="start"><div class="heading"><div><small>FIRST STEPS</small><h2>Make yourself <em>at home.</em></h2><p>Three commands, one porch. Works even when GitHub doesn't.</p></div></div>
+<div class="steps"><article><small>01 / CREATE</small><h3>Plant the first post.</h3><p>Create your first bare repository.</p><code>node src/cli.mjs init hello-world</code><button data-copy="node src/cli.mjs init hello-world">Copy command</button></article><article><small>02 / SERVE</small><h3>Light up the porch.</h3><p>Run the local dashboard and Git daemon.</p><code>npm start</code><button data-copy="npm start">Copy command</button></article><article><small>03 / VERIFY</small><h3>Check the floorboards.</h3><p>Verify Git object integrity, not CI.</p><code>node src/cli.mjs verify hello-world</code><button data-copy="node src/cli.mjs verify hello-world">Copy command</button></article></div>
+</section>
+<section id="crew" class="crew"><div><small>UP NEXT: THE PORCH CREW</small><h2>Our build runners. <em>Our rules.</em></h2><p>R1 will bring an independent job queue, isolated workers, logs, and evidence receipts. Nothing goes green unless it actually passes.</p></div><div class="stamp">⚒<strong>R1</strong><small>PLANNED</small></div></section>
+<footer><span>THE GITPORCH · PHI369</span><span>PULL UP A CHAIR. PUSH SOME CODE.</span><span>BUILD OUTWARD · CIRCLE BACK</span></footer>
+</main>
+</div>
+</body>
+</html>
