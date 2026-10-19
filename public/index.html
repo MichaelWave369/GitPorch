@@ -15,6 +15,7 @@
   <nav>
   <a href="#home" class="active">⌂ <span>Front Porch</span></a>
   <a href="#repositories">⑂ <span>Repositories</span></a>
+  <a href="#clubhouse">◇ <span>PhiBots Clubhouse</span></a>
   <a href="#crew">⌘ <span>Porch Crew</span><i>R1</i></a>
   <a href="#ledger">▤ <span>The Ledger</span></a>
   <a href="#start">◇ <span>Getting Started</span></a>
@@ -33,6 +34,12 @@
 <div class="stats"><article><small>REPOSITORIES &nbsp; ⑂</small><strong id="repo-count">—</strong><span>Local Git homestead</span></article><article><small>BRANCHES &nbsp; ⌁</small><strong id="branch-count">—</strong><span>Across local repos</span></article><article><small>GIT TRANSPORT &nbsp; ⇄</small><strong id="transport" class="word">CHECKING</strong><span>Loopback-only, read-only</span></article><article><small>THE PORCH CREW &nbsp; ⚒</small><strong class="word">R1 PLANNED</strong><span>Independent local CI</span></article></div>
 <section id="repositories" class="section"><div class="heading"><div><small>YOUR OWN CORNER OF THE INTERNET</small><h2>Repositories <em>on the porch.</em></h2><p>Bare Git repositories from your machine. No cloud required.</p></div><a class="btn outline" href="#start">+ New repository ↘</a></div>
 <div class="columns"><div class="repos" id="repos"></div><div class="ledger" id="ledger"><div class="ledger-head"><span>▤</span><div><strong>The Ledger</strong><small>RECENT COMMIT EVIDENCE</small></div></div><div class="history" id="history">Select a repository to inspect its history.</div><div class="ledger-foot">No invented build results. Only Git evidence.</div></div></div>
+</section>
+<section id="clubhouse" class="section clubhouse">
+<div class="heading"><div><small>THE ROCKING CHAIRS · LOCAL CONTRIBUTORS</small><h2>PhiBots <em>Clubhouse.</em></h2><p>Real local proposal receipts and contributor records. Reviews never perform merges.</p></div></div>
+<div class="clubhouse-grid"><div class="club-pane"><h3>Contributors <small>LOCAL RECORDS</small></h3><div id="club-members" role="list">Loading local contributors...</div></div>
+<div class="club-pane"><h3>Porch Meetings <small>PROPOSALS · NOT CI RESULTS</small></h3><div id="club-proposals" role="list">Loading local proposals...</div></div></div>
+<p class="club-note">This is a localhost-only ledger. Member labels are not authenticated identities. A proposal's commit object was found locally when recorded; no test, approval or merge is implied. To add records, use <code>node src/clubhouse-cli.mjs --help</code>.</p>
 </section>
 <section class="section" id="start"><div class="heading"><div><small>FIRST STEPS</small><h2>Make yourself <em>at home.</em></h2><p>Three commands, one porch. Works even when GitHub doesn't.</p></div></div>
 <div class="steps"><article><small>01 / CREATE</small><h3>Plant the first post.</h3><p>Create your first bare repository.</p><code>node src/cli.mjs init hello-world</code><button data-copy="node src/cli.mjs init hello-world">Copy command</button></article><article><small>02 / SERVE</small><h3>Light up the porch.</h3><p>Run the local dashboard and Git daemon.</p><code>npm start</code><button data-copy="npm start">Copy command</button></article><article><small>03 / VERIFY</small><h3>Check the floorboards.</h3><p>Verify Git object integrity, not CI.</p><code>node src/cli.mjs verify hello-world</code><button data-copy="node src/cli.mjs verify hello-world">Copy command</button></article></div>

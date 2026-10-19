@@ -14,3 +14,7 @@
 - A Git history integrity check is not a vulnerability scan. Rotate any accidentally exposed credentials.
 
 Before remote use, design authenticated SSH or HTTPS transport, repository ACLs, isolation for CI workers, resource limits, signed audit receipts, and full penetration testing. Please send vulnerability reports privately to the maintainers rather than disclosing personal secrets in issues.
+
+## Clubhouse R0.3 trust boundary
+
+The local Clubhouse CLI can label contributors and record proposal or review events. These are **operator-entered text records**, not proof that a bot or person authored anything. Commit references are checked as locally present Git commit objects when submitted, but no CI, signature, identity, code review, PR merge, or delegated authorization is performed. Records use SHA-256 checksums to detect accidental modification, **not digital signatures or a tamper-proof audit log**. An actor with filesystem write access could rewrite or delete them; preserve independent backups. Only a local CLI can mutate; the HTTP endpoint is GET-only and loopback-bound. Treat proposal summaries as untrusted text.

@@ -72,6 +72,21 @@ npm start
 - Native `node --test` suite; does not require GitHub Actions or any npm dependency downloads.
 - **Showcase mode** if the local API is not available: fictional sample repositories are explicitly labeled.
 
+## PhiBots Clubhouse (local R0.3)
+
+The Clubhouse records **local contributor labels, proposals referencing actual Git commits, and operator review notes**. It does not authenticate human or bot identity, certify any test, run build scripts, or merge branches.
+
+```bash
+node src/clubhouse-cli.mjs register helper-bot builder "Example Helper"
+node src/clubhouse-cli.mjs list
+# After you create/push a real repo commit to the local GitPorch:
+node src/clubhouse-cli.mjs propose helper-bot hello-world <full-commit-sha> "Improve the README"
+# Review decisions only after manual operator inspection:
+node src/clubhouse-cli.mjs decide <proposal-uuid> ACCEPTED "Reviewed locally" --confirm-local-review
+```
+
+These receipt files stay under ignored `data/crew/`. They are checksum-protected against accidental changes, **not signed, tamper-proof, append-only, or backed by authenticated identities**. See [Clubhouse rules](docs/CLUBHOUSE.md). The local dashboard has a read-only clubhouse view at `#clubhouse`. The public GitPage uses separate fictional examples.
+
 ## NOT yet implemented
 
 Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, independent CI, job isolation, artifact attestation, automated mirroring, TMC integration, or production network deployment.

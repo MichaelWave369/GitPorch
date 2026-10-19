@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { listRepos, readCommits, getHttpPort, getDataDir, getGitPort } from './git.mjs';
+import { summary as crewSummary } from './clubhouse.mjs';
 
 const publicDir = fileURLToPath(new URL('../public/', import.meta.url));
 const assets = new Map([
@@ -34,6 +35,7 @@ export function makeHandler({ dataDir = getDataDir(), daemonState = () => 'not_s
         caveat: 'Remote pushing, authentication, PR reviews and CI execution are not in R0',
       });
       if (path === '/api/repos') return json(res, 200, { repositories: await listRepos(dataDir) });
+      if (path === '/api/clubhouse') return json(res, 200, await crewSummary(dataDir));
       const matched = /^\/api\/repos\/([a-zA-Z0-9._-]+)\/commits$/.exec(path);
       if (matched) {
         const commits = await readCommits(dataDir, matched[1], 12);
