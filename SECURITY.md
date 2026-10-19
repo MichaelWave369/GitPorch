@@ -34,3 +34,5 @@ R1-C checks Docker's inspected immutable image identity against the queued ident
 ## R1-D1 manual job recovery
 
 The recovery doctor only reads existing queue receipts and lock metadata. The manual abort command acquires the same exclusive `worker.lock` path as each queue's worker before writing a single `ABORTED_UNVERIFIED` disposition. It refuses existing locks and will not kill jobs, clear a lock, restart uncertain work, overwrite a previously recorded PASS or pretend a human checkbox proves a worker was stopped. The operator's affirmative CLI flag is **not a technical proof of process termination**. Recover only after inspecting active processes and Docker containers and backing up the runtime data. Receipts remain checksum-protected local records, not signed, tamper-resistant, or independently witnessed.
+
+Manual recovery receipts are **not signed** and are not trustworthy against an attacker controlling the local filesystem or operator account.

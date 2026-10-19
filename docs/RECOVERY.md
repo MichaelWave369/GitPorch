@@ -32,3 +32,5 @@ After a crash, `worker.lock` can remain. Do **not** blindly delete it. First ins
 ## Further work
 
 Trusted actor identity, signed third-party attestations, independent hardware-backed witnesses, fully reliable resumable execution, hardened multi-tenant isolation and automated recovery remain future milestones. This stage is only a **manual fail-closed disposition** for interrupted work.
+
+All recovery receipts are **not signed** and are not independently witnessed. A valid checksum is only a local corruption check.
