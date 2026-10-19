@@ -41,8 +41,8 @@ test('Docker invocation is fixed, offline and least-privilege',()=>{
 });
 test('TAP parser rejects zero tests and nonzero exit codes',()=>{
  assert.equal(parseTap(TAP,0).outcome,'PASS');
- assert.equal(parseTap('TAP version 13\n# tests 0\n# pass 0\n# fail 0\n# skipped 0\n',0).outcome,'NO_TESTS');
- assert.equal(parseTap(TAP,1).outcome,'FAIL');
+ assert.equal(parseTap('TAP version 13\n1..0\n# tests 0\n# pass 0\n# fail 0\n# skipped 0\n',0).outcome,'NO_TESTS');
+ assert.equal(parseTap(TAP,1).outcome,'ERROR'); // nonzero exit without failed tests is an infrastructure anomaly
  assert.equal(parseTap('random output',0).outcome,'ERROR');
 });
 test('real pinned Git archive + fake Docker runner yields labeled result only',()=>fixture(async root=>{
