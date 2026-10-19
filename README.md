@@ -148,9 +148,23 @@ node src/evidence-cli.mjs verify .\git-report.json .\data\signer\operator-public
 
 Signing does not run any tests, overwrite completed results, or change the underlying outcome. Signed JSON can reveal repository names and commit identities, so share only deliberately. [Read the signing and verification guide](docs/SIGNED_EVIDENCE.md).
 
+## R1-D3: Second-key offline witness
+
+The operator may send an **already signed local job report** to another trusted person, who checks its operator signature and signs the exact report hash with a **different Ed25519 key**. A third party can verify **both** signatures offline, with independently trusted public keys. It preserves recorded `PASS`, `FAIL` or `ABORTED_UNVERIFIED` outcomes.
+
+```powershell
+# Ideally on the witness's separate computer. The private key is unencrypted:
+node src/witness-cli.mjs keygen "$env:USERPROFILE\GitPorchWitnessKeys" --i-accept-unencrypted-witness-key
+node src/witness-cli.mjs sign .\operator-report.json .\trusted-operator-public.pem "$env:USERPROFILE\GitPorchWitnessKeys\witness-private.pem" .\witness-report.json --i-confirm-signature-only
+# Verifier with separately trusted keys:
+node src/witness-cli.mjs verify .\operator-report.json .\witness-report.json .\trusted-operator-public.pem .\trusted-witness-public.pem
+```
+
+**Two signatures do not prove two independent machines or that the test actually ran.** They establish only that distinct key holders signed and countersigned the particular record. No remote services or automatic merge actions are added. See [R1-D3 operator guide](docs/WITNESS.md).
+
 ## NOT yet implemented
 
-Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, independently witnessed build attestations, automated mirroring, TMC integration, or production network deployment.
+Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, independently re-executed builds or attested runners, automated mirroring, TMC integration, or production network deployment.
 
 ```text
 Browser (http://127.0.0.1:3690)      Git client

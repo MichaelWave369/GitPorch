@@ -53,3 +53,7 @@ No local Git repository or Docker is required to verify. It doesn't access any n
 The code is local-first and dependency-free (Node built-in crypto only). Do not store key material under `docs/`, `public/`, or anywhere that GitHub Pages might publish. No authenticated remote signing API is exposed.
 
 Needed later: encrypted/private-key vaults, identity mapping and rotation/revocation, external independent witnesses, trusted CI isolation, reproducible build evaluation, full receipt lifecycle audits, and authenticated multi-user governance.
+
+## Later R1-D3 witness layer
+
+A separately controlled witness key can countersign an already signed operator report, after verifying the operator signature. See [R1-D3 Witness Guide](WITNESS.md). This adds a second verifiable signature, **not** independent verification that a job was run honestly.
