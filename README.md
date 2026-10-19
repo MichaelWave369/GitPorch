@@ -6,6 +6,12 @@
 
 **R0.1.0: local-first Git homestead.** An original, dependency-free Node.js + Git repository host with a browser dashboard and a separate read-only local Git clone endpoint. This is **not** yet a GitHub replacement, multiuser forge, or independent CI runner. We mark unfinished capabilities honestly.
 
+## Public GitHub Pages showcase
+
+The Pages-ready **interactive public demo** lives under [`docs/`](docs/). It uses only fictional repositories and commit examples, never the local GitPorch API or private data.
+
+After this feature is merged, enable GitHub Pages under **Settings → Pages → Deploy from a branch → `main` / `docs`**. Expected address: https://michaelwave369.github.io/GitPorch/ (live only after GitHub Pages publishes it). See [the Pages guide](docs/PAGES.md).
+
 ## Quick start on Windows PowerShell (or any terminal)
 
 Requirements: **Node.js 20+** and **Git** on PATH.
