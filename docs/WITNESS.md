@@ -23,8 +23,10 @@ Verify the operator public key fingerprint over an independent trusted channel. 
 
 ```powershell
 # Assume the operator sent operator-report.json and verified operator-public.pem.
-node src/witness-cli.mjs sign .\operator-report.json .\operator-public.pem "$env:USERPROFILE\GitPorchWitnessKeys\witness-private.pem" .\witness-report.json --i-confirm-signature-only
+node src/witness-cli.mjs sign .\data\incoming\operator-report.json .\data\incoming\operator-public.pem "$env:USERPROFILE\GitPorchWitnessKeys\witness-private.pem" .\data\signed-reports\witness-report.json --i-confirm-signature-only
 ```
+
+Keep incoming operator reports and the generated witness report under Git-ignored `data/` or outside the repository; report output inside tracked source is rejected to avoid accidental publishing. Treat the incoming public keys as trusted only after independent fingerprint verification.
 
 The command refuses to countersign if the operator signature is invalid, the operator and witness keys are identical, or the output report already exists. It creates no network connections, Docker containers or Git commits.
 
@@ -35,7 +37,7 @@ Share the `witness-report.json` and the witness **public** key with the verifier
 The verifier needs the operator-signed JSON report, the witness JSON report and **both independently trusted public keys**:
 
 ```powershell
-node src/witness-cli.mjs verify .\operator-report.json .\witness-report.json .\trusted-operator-public.pem .\trusted-witness-public.pem
+node src/witness-cli.mjs verify .\data\incoming\operator-report.json .\data\signed-reports\witness-report.json .\data\incoming\trusted-operator-public.pem .\data\incoming\trusted-witness-public.pem
 ```
 
 The verifier checks the original operator signature, the witness signature, both fingerprints, that the keys differ, that the witness's bound report hash matches the exact signed operator report, and that the job ID and outcome match.

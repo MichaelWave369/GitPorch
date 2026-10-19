@@ -102,6 +102,7 @@ export async function signWitnessFile(reportPath,operatorPublicPath,witnessPriva
   loadJson(reportPath),readFile(operatorPublicPath,'utf8'),readFile(witnessPrivatePath,'utf8')
  ]);
  const envelope=witnessReport(report,operatorPublic,witnessPrivate);
+ keyDirectoryAllowed(dirname(outputPath));
  await fresh(outputPath,JSON.stringify(envelope,null,2)+'\n',0o600);
  return {outputPath,witnessFingerprint:envelope.body.witnessFingerprint,
    observedOutcome:envelope.body.observedOutcome,assurance:'OFFLINE_COUNTERSIGNATURE_ONLY'};

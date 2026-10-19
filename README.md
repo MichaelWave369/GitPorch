@@ -155,9 +155,9 @@ The operator may send an **already signed local job report** to another trusted 
 ```powershell
 # Ideally on the witness's separate computer. The private key is unencrypted:
 node src/witness-cli.mjs keygen "$env:USERPROFILE\GitPorchWitnessKeys" --i-accept-unencrypted-witness-key
-node src/witness-cli.mjs sign .\operator-report.json .\trusted-operator-public.pem "$env:USERPROFILE\GitPorchWitnessKeys\witness-private.pem" .\witness-report.json --i-confirm-signature-only
+node src/witness-cli.mjs sign .\data\incoming\operator-report.json .\data\incoming\trusted-operator-public.pem "$env:USERPROFILE\GitPorchWitnessKeys\witness-private.pem" .\data\signed-reports\witness-report.json --i-confirm-signature-only
 # Verifier with separately trusted keys:
-node src/witness-cli.mjs verify .\operator-report.json .\witness-report.json .\trusted-operator-public.pem .\trusted-witness-public.pem
+node src/witness-cli.mjs verify .\data\incoming\operator-report.json .\data\signed-reports\witness-report.json .\data\incoming\trusted-operator-public.pem .\data\incoming\trusted-witness-public.pem
 ```
 
 **Two signatures do not prove two independent machines or that the test actually ran.** They establish only that distinct key holders signed and countersigned the particular record. No remote services or automatic merge actions are added. See [R1-D3 operator guide](docs/WITNESS.md).
