@@ -4,7 +4,7 @@ import {mkdtemp,rm,readFile,writeFile,rename} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createRepo,git} from '../src/git.mjs';
-import {dockerPlan,parseTap,enqueue,workOnce,snapshot} from '../src/sandbox-ci.mjs';
+import {dockerPlan,parseTap,enqueue,workOnce,snapshot,preflightImage} from '../src/sandbox-ci.mjs';
 const IMAGE='sha256:'+'a'.repeat(64);
 const TAP='TAP version 13\nok 1 - test one\n1..1\n# tests 1\n# pass 1\n# fail 0\n# skipped 0\n';
 async function fixture(fn){
@@ -90,3 +90,15 @@ test('mismatched local image metadata is an ERROR, never a passing test',()=>fix
  }});
  assert.equal(response.outcome,'ERROR');assert.equal(ran,false);
 }));
+
+test('preflight inspects pinned local image without launching containers',async()=>{
+ let commands=[];
+ const result=await preflightImage(IMAGE,{execute:async(binary,args)=>{
+  commands.push([binary,...args]);
+  return {exitCode:0,stdout:JSON.stringify({Id:IMAGE,RepoDigests:[]}),timeout:false};
+ }});
+ assert.equal(result.ready,true);assert.equal(result.observedImageId,IMAGE);
+ assert.equal(commands.length,1);assert.equal(commands[0][1],'image');
+ const mismatch=await preflightImage(IMAGE,{execute:async()=>({exitCode:0,stdout:JSON.stringify({Id:'sha256:'+'b'.repeat(64)}),timeout:false})});
+ assert.equal(mismatch.ready,false);
+});

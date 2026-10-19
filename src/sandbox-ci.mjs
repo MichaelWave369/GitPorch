@@ -118,6 +118,18 @@ function runCommand(exe,args,timeoutMs=90000,maxOutput=256*1024){
   });
  });
 }
+// Diagnostic-only: checks local Docker image identity; does not pull or run.
+export async function preflightImage(image,{execute=runCommand}={}){
+ if(typeof image!=='string'||!IMAGE.test(image))throw Error('Immutable image reference required');
+ try{
+  const inspected=await execute('docker',['image','inspect','--format','{{json .}}',image],10000);
+  if(inspected.timeout||inspected.exitCode!==0)return {ready:false,reason:'LOCAL_IMAGE_NOT_FOUND_OR_DOCKER_UNAVAILABLE'};
+  const identity=verifyImageIdentity(image,inspected.stdout);
+  return {ready:true,observedImageId:identity.id,scope:'LOCAL_DOCKER_INSPECTION_ONLY_NO_CONTAINER_RUN'};
+ }catch{
+  return {ready:false,reason:'LOCAL_IMAGE_INSPECTION_FAILED'};
+ }
+}
 async function archiveCommit(repoPath,commit,target){
  // Stream Git's binary tar into a local staging file with an output cap.
  const out=await open(target,'wx',0o644);
