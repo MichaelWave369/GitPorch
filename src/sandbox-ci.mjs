@@ -133,7 +133,12 @@ async function archiveCommit(repoPath,commit,target){
   for await(const chunk of child.stdout){
    count+=chunk.length;
    if(count>20*1024*1024){child.kill();throw Error('Archive exceeded 20 MiB cap');}
-   await out.write(chunk);
+   let offset=0;
+   while(offset<chunk.length){
+    const {bytesWritten}=await out.write(chunk,offset,chunk.length-offset);
+    if(bytesWritten<=0)throw Error('Archive write made no progress');
+    offset+=bytesWritten;
+   }
   }
   for await(const b of child.stderr)errors+=String(b).slice(0,1024);
   const exit=await new Promise((res,rej)=>{
