@@ -47,3 +47,7 @@ To rotate, create a fresh keypair, verify its public fingerprint independently, 
 The registry lives under Git-ignored **data/trust/**. Exclusive **policy.lock** serializes enroll and revoke. If a lock remains after a crash, inspect active CLI processes and back up data before manually investigating it. The tool never auto-removes a possibly active lock.
 
 The revocation checksum detects ordinary modifications, **not malicious rollback**. Someone controlling the local filesystem can remove or rewrite the registry and its checksums. There is no signed trust root, CA, external transparency log, key encryption, trusted timestamps, OS-backed hardware signing, identity verification or independent rerun in this milestone. Keep the runtime folder private and do not expose it via GitHub Pages.
+
+## Encrypted operator keys
+
+R1-D4B1 can create a new passphrase-encrypted signing identity. Enroll its public key by an independently verified fingerprint, and plan any rotation/revocation of the old key deliberately. See [Encrypted Keys](ENCRYPTED_KEYS.md). The trust policy remains unsigned and rollback-vulnerable.

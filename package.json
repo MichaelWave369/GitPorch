@@ -20,7 +20,8 @@
     "recovery": "node src/recovery-cli.mjs",
     "evidence": "node src/evidence-cli.mjs",
     "witness": "node src/witness-cli.mjs",
-    "trust": "node src/trust-cli.mjs"
+    "trust": "node src/trust-cli.mjs",
+    "vault": "node src/vault-cli.mjs"
   },
   "license": "MIT"
 }
