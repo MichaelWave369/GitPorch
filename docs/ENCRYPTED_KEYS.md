@@ -50,3 +50,7 @@ Signed reports are created exclusively under Git-ignored `data/signed-reports/` 
 - A correct signature proves key possession and report integrity, **not the honesty or independence of test execution**.
 
 Future R1-D4B work can explore OS/hardware-backed nonexportable keys, careful migration/rotation, independently witnessed revocation, and separate-machine test reruns.
+
+## R1-D4B2A: Change the passphrase without changing the key
+
+The optional [Vault Rewrap Guide](VAULT_REWRAP.md) describes staging a new encrypted copy of the same Ed25519 identity, verifying it and optionally signing with it. The original vault remains unchanged. This is **not a cryptographic identity rotation** and it does not revoke old signing authority.
