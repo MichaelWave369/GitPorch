@@ -162,6 +162,20 @@ node src/witness-cli.mjs verify .\data\incoming\operator-report.json .\data\sign
 
 **Two signatures do not prove two independent machines or that the test actually ran.** They establish only that distinct key holders signed and countersigned the particular record. No remote services or automatic merge actions are added. See [R1-D3 operator guide](docs/WITNESS.md).
 
+## R1-D4A: Offline public-key trust and revocation
+
+A valid Ed25519 signature is only useful if the verifier separately approves the signing keys. This opt-in local registry enrolls operator and witness public keys by confirmed fingerprint and refuses unknown or revoked keys.
+
+```powershell
+node src/trust-cli.mjs fingerprint .\data\incoming\trusted-operator-public.pem
+node src/trust-cli.mjs enroll operator .\data\incoming\trusted-operator-public.pem sha256:<64-hex> --i-verified-fingerprint-out-of-band
+node src/trust-cli.mjs enroll witness .\data\incoming\trusted-witness-public.pem sha256:<64-hex> --i-verified-fingerprint-out-of-band
+node src/trust-cli.mjs verify .\data\incoming\operator-report.json .\data\incoming\witness-report.json
+node src/trust-cli.mjs revoke witness sha256:<64-hex> "Key retired" --i-confirm-revocation
+```
+
+The registry is stored in ignored `data/trust/`. Its revocation checksums **do not make it signed, immutable or rollback-proof**. Revoked keys are rejected even for old reports under the current local policy. This does not prove test execution. See [Trust Policy Guide](docs/TRUST_POLICY.md).
+
 ## NOT yet implemented
 
 Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, independently re-executed builds or attested runners, automated mirroring, TMC integration, or production network deployment.
