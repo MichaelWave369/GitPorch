@@ -51,3 +51,7 @@ A positive response is labelled `TWO_DISTINCT_KEY_SIGNATURES_NOT_INDEPENDENT_EXE
 - JSON reports can contain private project names, Git commits and test metadata; distribute only intentionally
 - Witness reports are never written by GitHub Pages; the website remains a static fictional showcase
 - Generate witness keys in private storage **outside the repo**, because arbitrary output directories are allowed and the tool cannot guard every user-selected location
+
+## R1-D4A trust-policy layer
+
+The [Trust Policy Guide](TRUST_POLICY.md) describes explicit enrollment, separately verified fingerprints and revocation for the existing operator/witness keys. Policy verification rejects keys that are unknown or currently revoked. This is still **not proof of independent execution**.
