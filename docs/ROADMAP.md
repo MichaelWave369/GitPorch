@@ -12,8 +12,9 @@
 | R1-D2 | **Offline Ed25519 operator-signed local result reports**, separate trusted-key verification; not witnessed CI | Merged PR #8 |
 | R1-D3 | **Offline second-key countersignature** of operator reports; two-key verification, no independent run proof | Merged PR #9 |
 | R1-D4A | **Offline public-key trust registry** and current-policy revocation; explicit enrollment, no trust-on-first-use | Merged PR #10 |
-| R1-D4B1 | **Opt-in passphrase-encrypted Ed25519 operator vault**, signed reports compatible with existing verifier; no migration | PR #11 proposed |
-| R1-D4B2 | Hardware/OS-backed key custody, safe migration/rotation, signed anti-rollback trust policy and independent reruns | Planned |
+| R1-D4B1 | **Opt-in passphrase-encrypted Ed25519 operator vault**, signed reports compatible with existing verifier; no migration | Merged PR #11 |
+| R1-D4B2A | **Non-destructive passphrase rewrap**, staged encrypted vault with same signing identity and explicit verification | PR #12 proposed |
+| R1-D4B2B | **Distinct signing-key identity** transition, OS/hardware key custody, signed anti-rollback policy and independent reruns | Planned |
 | R2 | Authenticated SSH push, users, repo permissions and receipts | Planned |
 | R3 | Pull requests, branch protection, code review, issues, artifacts, actual-status badges | Planned |
 | R4 | Optional GitHub/GitLab mirroring and governed AI-agent adapters | Planned |

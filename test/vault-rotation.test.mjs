@@ -1,0 +1,61 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm,readFile,readdir,writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {createPrivateKey,createPublicKey,sign,verify} from 'node:crypto';
+import {writeNewEncryptedKey,unlockEncryptedKeyFile,readVaultPublicInfo} from '../src/key-vault.mjs';
+import {rewrapVault,checkRewrappedVault} from '../src/vault-rotation.mjs';
+const OLD='strong old vault passphrase for test only 123';
+const NEXT='completely different new test passphrase 456';
+async function isolated(fn){const root=await mkdtemp(join(tmpdir(),'gp-rewrap-'));try{await fn(root)}finally{await rm(root,{recursive:true,force:true})}}
+test('rewrap keeps exact Ed25519 signing identity and original ciphertext intact',()=>isolated(async root=>{
+ const original=join(root,'operator-encrypted.json'),next=join(root,'operator-encrypted-next.json');
+ const info=await writeNewEncryptedKey(original,OLD);
+ const originalBytes=await readFile(original,'utf8');
+ const result=await rewrapVault(original,next,OLD,NEXT);
+ assert.equal(result.oldPathPreserved,true);
+ assert.equal(result.signingKeyFingerprint,info.fingerprint);
+ assert.equal(await readFile(original,'utf8'),originalBytes);
+ assert.notEqual(await readFile(next,'utf8'),originalBytes);
+ const oldVault=JSON.parse(originalBytes),newVault=JSON.parse(await readFile(next,'utf8'));
+ assert.notEqual(oldVault.salt,newVault.salt);
+ assert.notEqual(oldVault.iv,newVault.iv);
+ assert.doesNotMatch(await readFile(next,'utf8'),/BEGIN PRIVATE KEY/);
+ const oldKey=createPrivateKey(await unlockEncryptedKeyFile(original,OLD));
+ const nextKey=createPrivateKey(await unlockEncryptedKeyFile(next,NEXT));
+ const msg=Buffer.from('same identity check');
+ const signature=sign(null,msg,nextKey);
+ assert.equal(verify(null,msg,createPublicKey(oldKey),signature),true);
+ assert.equal((await checkRewrappedVault(original,next,NEXT)).ready,true);
+}));
+test('wrong old passphrase, weak or reused new passphrases do not create next vault',()=>isolated(async root=>{
+ const old=join(root,'old.json'),next=join(root,'next.json');
+ await writeNewEncryptedKey(old,OLD);
+ await assert.rejects(rewrapVault(old,next,'wrong long original passphrase',NEXT),/Wrong passphrase/);
+ await assert.rejects(rewrapVault(old,next,OLD,OLD),/must differ/);
+ await assert.rejects(rewrapVault(old,next,OLD,'short'),/Passphrase/);
+ assert.deepEqual((await readdir(root)).sort(),['old.json']);
+}));
+test('existing target and same-path mistakes never overwrite the original vault',()=>isolated(async root=>{
+ const old=join(root,'old.json'),next=join(root,'next.json');
+ await writeNewEncryptedKey(old,OLD);
+ const originalBytes=await readFile(old,'utf8');
+ await assert.rejects(rewrapVault(old,old,OLD,NEXT),/must differ/);
+ await writeFile(next,'existing encrypted backup');
+ await assert.rejects(rewrapVault(old,next,OLD,NEXT),/EEXIST/);
+ assert.equal(await readFile(old,'utf8'),originalBytes);
+ assert.equal(await readFile(next,'utf8'),'existing encrypted backup');
+}));
+test('staged verification rejects bad passphrases, changed identity and tampering',()=>isolated(async root=>{
+ const old=join(root,'old.json'),next=join(root,'next.json');
+ await writeNewEncryptedKey(old,OLD);
+ await rewrapVault(old,next,OLD,NEXT);
+ await assert.rejects(checkRewrappedVault(old,next,'incorrect but still long enough'),/Wrong passphrase/);
+ const edited=JSON.parse(await readFile(next,'utf8'));
+ edited.tag='AAAAAAAAAAAAAAAAAAAAAA==';
+ await writeFile(next,JSON.stringify(edited));
+ await assert.rejects(checkRewrappedVault(old,next,NEXT),/modified/);
+ const originalInfo=await readVaultPublicInfo(old);
+ assert.equal(originalInfo.fingerprint.startsWith('sha256:'),true);
+}));

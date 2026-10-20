@@ -188,6 +188,19 @@ node src/vault-cli.mjs sign git <completed-job-id> --i-confirm-local-signing
 
 Signed reports remain compatible with existing offline verification; they retain their actual PASS/FAIL/ABORTED_UNVERIFIED status. Decrypted key material exists briefly in process memory, so encryption does **not** protect against a compromised host. Protect and back up your strong vault passphrase: there is no recovery. See [Encrypted Operator Key Guide](docs/ENCRYPTED_KEYS.md).
 
+## R1-D4B2A: Stage an encrypted-vault passphrase change
+
+This provides an **opt-in, nondestructive rewrap** of the current encrypted operator key, generating a new encrypted copy with the **same Ed25519 fingerprint** and a **different passphrase**, salt and nonce. It keeps the original encrypted vault untouched; nothing switches or revokes automatically.
+
+```powershell
+node src/vault-cli.mjs rewrap --i-confirm-new-encrypted-copy
+node src/vault-cli.mjs verify-next
+# Optional: use staged key for a new completed job, without changing default vault:
+node src/vault-cli.mjs sign-next git <completed-job-id> --i-confirm-local-signing
+```
+
+This is **passphrase rotation, not signing-key identity rotation**. It cannot make a compromised private key safe, and revoking its unchanged public fingerprint would affect both encrypted copies. [Read the safe rewrap guide](docs/VAULT_REWRAP.md).
+
 ## NOT yet implemented
 
 Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, independently re-executed builds or attested runners, automated mirroring, TMC integration, or production network deployment.
