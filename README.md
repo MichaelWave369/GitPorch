@@ -176,6 +176,18 @@ node src/trust-cli.mjs revoke witness sha256:<64-hex> "Key retired" --i-confirm-
 
 The registry is stored in ignored `data/trust/`. Its revocation checksums **do not make it signed, immutable or rollback-proof**. Revoked keys are rejected even for old reports under the current local policy. This does not prove test execution. See [Trust Policy Guide](docs/TRUST_POLICY.md).
 
+## R1-D4B1: Optional password-encrypted local operator key
+
+Generate a **new** Ed25519 operator key whose private material is stored in an encrypted vault (scrypt + AES-256-GCM) under ignored `data/signer/`. A hidden interactive passphrase prompt is required; no passphrase is accepted on the command line. **Existing unencrypted keys are not converted or deleted.**
+
+```powershell
+node src/vault-cli.mjs keygen --i-accept-password-vault
+node src/vault-cli.mjs public
+node src/vault-cli.mjs sign git <completed-job-id> --i-confirm-local-signing
+```
+
+Signed reports remain compatible with existing offline verification; they retain their actual PASS/FAIL/ABORTED_UNVERIFIED status. Decrypted key material exists briefly in process memory, so encryption does **not** protect against a compromised host. Protect and back up your strong vault passphrase: there is no recovery. See [Encrypted Operator Key Guide](docs/ENCRYPTED_KEYS.md).
+
 ## NOT yet implemented
 
 Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, independently re-executed builds or attested runners, automated mirroring, TMC integration, or production network deployment.
