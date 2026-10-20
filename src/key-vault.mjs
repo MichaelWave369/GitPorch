@@ -35,12 +35,12 @@ function formatCheck(v){
   throw Error('Invalid encrypted key vault metadata');
  return {salt:b64(v.salt,16,'salt'),iv:b64(v.iv,12,'IV'),tag:b64(v.tag,16,'tag'),ciphertext:b64(v.ciphertext,null,'ciphertext')};
 }
-// Return plain metadata and encrypted bytes; caller must not log the passphrase.
-export async function makeEncryptedKey(passphrase){
+// Encrypt an existing Ed25519 private key *only in memory*. Never write a PEM to disk.
+export async function encryptPrivateKeyPem(pem,passphrase){
  validatePassword(passphrase);
- const {privateKey,publicKey}=generateKeyPairSync('ed25519');
- const pem=privateKey.export({type:'pkcs8',format:'pem'});
- const pub=publicKey.export({type:'spki',format:'pem'});
+ const privateKey=createPrivateKey(pem);
+ if(privateKey.asymmetricKeyType!=='ed25519')throw Error('Only Ed25519 private keys may be rewrapped');
+ const pub=createPublicKey(privateKey).export({type:'spki',format:'pem'});
  const salt=randomBytes(16),iv=randomBytes(12);
  const key=await derive(passphrase,salt,32,{N:KDF.N,r:KDF.r,p:KDF.p,maxmem:64*1024*1024});
  try{
@@ -50,6 +50,12 @@ export async function makeEncryptedKey(passphrase){
    const ciphertext=Buffer.concat([cipher.update(pem,'utf8'),cipher.final()]);
    return {...prefix,salt:salt.toString('base64'),iv:iv.toString('base64'),tag:cipher.getAuthTag().toString('base64'),ciphertext:ciphertext.toString('base64')};
  }finally{key.fill(0);}
+}
+// Initial keygen also encrypts immediately. It never writes plaintext PEM.
+export async function makeEncryptedKey(passphrase){
+ validatePassword(passphrase);
+ const {privateKey}=generateKeyPairSync('ed25519');
+ return encryptPrivateKeyPem(privateKey.export({type:'pkcs8',format:'pem'}),passphrase);
 }
 export async function unlockEncryptedKey(vault,passphrase){
  validatePassword(passphrase);
