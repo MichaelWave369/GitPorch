@@ -9,8 +9,9 @@
 | R1-B | **Opt-in Node.js tests in restricted, network-disabled Docker containers**; unsigned local receipts | Merged PR #5 |
 | R1-C | Strict pinned-image verification, operator Docker preflight, stricter TAP validation, output hashes (unsigned) | Merged PR #6 |
 | R1-D1 | Local recovery doctor, operator-only ABORTED_UNVERIFIED disposition, lock-safe recovery; no automatic retry | Merged PR #7 |
-| R1-D2 | **Offline Ed25519 operator-signed local result reports**, separate trusted-key verification; not witnessed CI | PR #8 proposed |
-| R1-D3 | Independent runner witnesses, hardened key custody and rotation, reproducibility and stronger isolation | Planned |
+| R1-D2 | **Offline Ed25519 operator-signed local result reports**, separate trusted-key verification; not witnessed CI | Merged PR #8 |
+| R1-D3 | **Offline second-key countersignature** of operator reports; two-key verification, no independent run proof | PR #9 proposed |
+| R1-D4 | Encrypted/hardware-backed key custody, revocation policy, independent reruns, transparency witnesses and stronger isolation | Planned |
 | R2 | Authenticated SSH push, users, repo permissions and receipts | Planned |
 | R3 | Pull requests, branch protection, code review, issues, artifacts, actual-status badges | Planned |
 | R4 | Optional GitHub/GitLab mirroring and governed AI-agent adapters | Planned |
