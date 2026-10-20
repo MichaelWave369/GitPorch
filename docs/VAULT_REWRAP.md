@@ -24,7 +24,7 @@ node src/porch-crew-cli.mjs list
 node src/vault-cli.mjs sign-next git <completed-job-id> --i-confirm-local-signing
 ```
 
-`verify-next` interactively unlocks the staged vault and confirms it still has the original public fingerprint. The test checks its signing ability in memory and outputs only the fingerprint and status. `sign-next` unlocks **the staged vault specifically** and signs an already completed job with the existing local report format. It neither changes the default `sign` command nor promotes failing/uncertain work to PASS. The default command `vault-cli.mjs sign` continues using the original vault.
+`verify-next` interactively unlocks the staged vault and confirms it still has the original public fingerprint. The test checks its signing ability in memory and outputs only the fingerprint and status. `sign-next` first verifies the staged vault still matches the original signing fingerprint, then unlocks **the staged vault specifically** and signs an already completed job with the existing local report format. It neither changes the default `sign` command nor promotes failing/uncertain work to PASS. The default command `vault-cli.mjs sign` continues using the original vault.
 
 Do not expect two reports for the same job: signed report paths are exclusive and based on job ID, not vault copy. If one already exists, the signer refuses to overwrite it. Test with a newly completed job you are willing to sign.
 

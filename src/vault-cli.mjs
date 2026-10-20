@@ -79,6 +79,7 @@ async function main(){
   case 'sign-next':{
    if(args.length!==3||args[2]!=='--i-confirm-local-signing')throw Error(HELP);
    const passphrase=await promptSecret('Vault passphrase (not echoed): ');
+   if(cmd==='sign-next')await checkRewrappedVault(vaultPath,nextVaultPath,passphrase);
    result=await signWithEncryptedKey(dataDir,args[0],args[1],cmd==='sign-next'?nextVaultPath:vaultPath,passphrase,loadSnapshot);
    break;
   }
