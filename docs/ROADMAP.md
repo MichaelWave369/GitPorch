@@ -14,6 +14,9 @@
 | R1-D4A | **Offline public-key trust registry** and current-policy revocation; explicit enrollment, no trust-on-first-use | Merged PR #10 |
 | R1-D4B1 | **Opt-in passphrase-encrypted Ed25519 operator vault**, signed reports compatible with existing verifier; no migration | Merged PR #11 |
 | R1-D4B2A | **Non-destructive passphrase rewrap**, staged encrypted vault with same signing identity and explicit verification | PR #12 proposed |
+| R1-E | **ΦRunners** unified local CLI + read-only queue pulse, real outcome totals, fail-closed corrupt/changed lane handling; no GitHub adapter or remote worker | Proposed PR |
+| R1-F | Operator-approved bounded build recipes and artifact provenance | Planned |
+| R1-G | Local capability registry and separate-machine transport threat model; no remote execution until security review | Planned |
 | R1-D4B2B | **Distinct signing-key identity** transition, OS/hardware key custody, signed anti-rollback policy and independent reruns | Planned |
 | R2 | Authenticated SSH push, users, repo permissions and receipts | Planned |
 | R3 | Pull requests, branch protection, code review, issues, artifacts, actual-status badges | Planned |

@@ -201,6 +201,20 @@ node src/vault-cli.mjs sign-next git <completed-job-id> --i-confirm-local-signin
 
 This is **passphrase rotation, not signing-key identity rotation**. It cannot make a compromised private key safe, and revoking its unchanged public fingerprint would affect both encrypted copies. [Read the safe rewrap guide](docs/VAULT_REWRAP.md).
 
+## PhiRunners R1-E: the local operator command hub
+
+PhiRunners unifies the already implemented Porch Crew Git-integrity and restricted Docker-test queues. It introduces a **read-only local status view**, not a new runner engine or GitHub replacement.
+
+```powershell
+npm run phirunners -- status
+npm start
+# http://127.0.0.1:3690/#phirunners
+```
+
+The CLI also exposes operator-initiated `enqueue-git`, `work-git-once`, `preflight-image`, `enqueue-tests`, and `work-tests-once --i-approve-container-tests` operations by **delegating to existing workers**. Nothing triggers automatically from the browser or a remote PR. Invalid or changing receipts suppress affected lane data; combined totals are withheld if any lane cannot be verified locally. Locks mean activity **unknown**, not confirmed running. This module does not register a GitHub self-hosted runner or offer deployment, remote sync, untrusted-code isolation, or independently attested builds.
+
+See [PhiRunners operator guide](docs/PHIRUNNERS.md) for the commands, boundaries, and roadmap.
+
 ## NOT yet implemented
 
 Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, independently re-executed builds or attested runners, automated mirroring, TMC integration, or production network deployment.

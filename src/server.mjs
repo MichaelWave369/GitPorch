@@ -7,6 +7,7 @@ import { summary as crewSummary } from './clubhouse.mjs';
 import { queueSnapshot } from './porch-crew.mjs';
 import { snapshot as sandboxSnapshot } from './sandbox-ci.mjs';
 import { doctor as recoveryDoctor } from './recovery.mjs';
+import { phirunnersSnapshot } from './phirunners.mjs';
 
 const publicDir = fileURLToPath(new URL('../public/', import.meta.url));
 const assets = new Map([
@@ -42,6 +43,7 @@ export function makeHandler({ dataDir = getDataDir(), daemonState = () => 'not_s
       if (path === '/api/porch-crew') return json(res, 200, await queueSnapshot(dataDir));
       if (path === '/api/sandbox-tests') return json(res, 200, await sandboxSnapshot(dataDir));
       if (path === '/api/recovery') return json(res, 200, await recoveryDoctor(dataDir));
+      if (path === '/api/phirunners') return json(res, 200, await phirunnersSnapshot(dataDir));
       const matched = /^\/api\/repos\/([a-zA-Z0-9._-]+)\/commits$/.exec(path);
       if (matched) {
         const commits = await readCommits(dataDir, matched[1], 12);

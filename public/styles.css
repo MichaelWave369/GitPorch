@@ -22,3 +22,8 @@
 /* R1-B opt-in container test receipts. No dashboard mutation controls. */
 #sandbox .club-row{border-top:1px solid #38503e;padding:12px 0}
 #sandbox .club-row small{color:#a5bba9}
+
+/* PhiRunners R1-E: read-only local operator status. All receipt text stays textContent. */
+#phirunners .club-row{padding:11px 0}
+#phirunners .club-row small{overflow-wrap:anywhere}
+#phirunners-pulse{line-height:1.5;font-size:16px}

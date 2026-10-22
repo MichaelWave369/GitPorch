@@ -18,6 +18,7 @@
     "crew": "node src/porch-crew-cli.mjs",
     "sandbox": "node src/sandbox-cli.mjs",
     "recovery": "node src/recovery-cli.mjs",
+    "phirunners": "node src/phirunners-cli.mjs",
     "evidence": "node src/evidence-cli.mjs",
     "witness": "node src/witness-cli.mjs",
     "trust": "node src/trust-cli.mjs",
