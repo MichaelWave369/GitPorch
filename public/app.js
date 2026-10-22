@@ -214,3 +214,31 @@ async function refreshPhiRunners(){
  }
 }
 refreshPhiRunners();
+
+
+async function refreshArtifactForge(){
+ const pulse=$('artifact-pulse'),rows=$('artifact-rows');
+ if(!pulse||!rows)return;
+ const el=(tag,s,cl='')=>{const n=document.createElement(tag);n.textContent=String(s);if(cl)n.className=cl;return n;};
+ try{
+  const response=await fetch('/api/artifacts',{cache:'no-store'});
+  if(!response.ok)throw Error('Artifact inventory not verified');
+  const state=await response.json();
+  if(state.mode!=='LOCAL_READ_ONLY'||state.assurance!=='LOCAL_SHA256_AND_RECEIPT_CHECKSUM_NOT_SIGNED')
+     throw Error('Unexpected artifact response');
+  pulse.replaceChildren(el('p',state.count+' private source archive(s) · SHA-256 checked · NOT compiled builds'));
+  rows.replaceChildren();
+  if(!state.artifacts.length){rows.append(el('p','No local bundles yet. Operator CLI approval required.','club-empty'));return;}
+  for(const item of state.artifacts.slice(0,12)){
+   const row=el('div','','club-row');
+   row.append(el('strong',item.repo+' @ '+item.commit.slice(0,12)+' · SOURCE ARCHIVE'),
+      el('small',item.bytes+' bytes · SHA-256 '+item.sha256),
+      el('small','Docker test job '+item.testJobId+' · '+item.status));
+   rows.append(row);
+  }
+ }catch{
+  pulse.replaceChildren(el('p','UNVERIFIED OR UNAVAILABLE · No artifact success reported','club-empty'));
+  rows.replaceChildren(el('p','Inspect local data and receipts; malformed/partial bundles are withheld.','club-empty'));
+ }
+}
+refreshArtifactForge();

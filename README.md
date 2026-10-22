@@ -215,6 +215,20 @@ The CLI also exposes operator-initiated `enqueue-git`, `work-git-once`, `preflig
 
 See [PhiRunners operator guide](docs/PHIRUNNERS.md) for the commands, boundaries, and roadmap.
 
+## Artifact Forge R1-F1: private source bundles with local SHA-256
+
+Artifact Forge produces a bounded `git archive` of an exact commit only when a matching, locally reported **successful isolated Node test** has completed with output evidence. The operator must explicitly approve each bundle; no build scripts, arbitrary commands, installs, deployments, pushes, or network publishing run during packaging.
+
+```powershell
+npm run artifacts -- list
+# After a matching completed local Docker test job:
+npm run artifacts -- bundle hello-world <completed-test-job-id> --i-approve-source-archive
+npm start
+# http://127.0.0.1:3690/#artifacts
+```
+
+Every source tar and its receipt live under ignored private `data/artifacts/`. The read-only local inventory rechecks SHA-256 and metadata and **fails closed** on missing, partial or altered files. Packaging success means the *source bytes* were archived, **not** a compiled build, signed supply-chain attestation, or permission to merge or ship. See [Artifact Forge operator guide](docs/ARTIFACT_FORGE.md).
+
 ## NOT yet implemented
 
 Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, independently re-executed builds or attested runners, automated mirroring, TMC integration, or production network deployment.
