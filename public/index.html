@@ -19,6 +19,7 @@
   <a href="#workshop">⚒ <span>The Workshop</span><i>R1-D1</i></a>
   <a href="#phirunners">Φ <span>PhiRunners</span><i>R1-E</i></a>
   <a href="#artifacts">▣ <span>Artifact Forge</span><i>R1-F1</i></a>
+  <a href="#builds">⚙ <span>Isolated Builds</span><i>R1-F2</i></a>
   <a href="#recovery">⌁ <span>Recovery Doctor</span></a>
   <a href="#crew">⌘ <span>Porch Crew</span><i>R1</i></a>
   <a href="#ledger">▤ <span>The Ledger</span></a>
@@ -71,6 +72,16 @@
 <div class="club-pane"><h3>Source receipts <small>COMMIT · TEST ID · DIGEST</small></h3><div id="artifact-rows" role="list">Verifying archived source bytes...</div></div>
 </div>
 <p class="club-note">Bundles are created only with explicit local CLI approval: <code>npm run artifacts -- bundle &lt;repo&gt; &lt;job-id&gt; --i-approve-source-archive</code>. They remain private in <code>data/artifacts/</code>. No HTTP downloads, publishing, auto-merge, arbitrary scripts, or release status badges. See <code>docs/ARTIFACT_FORGE.md</code>.</p>
+</section>
+<section id="builds" class="section">
+<div class="heading"><div><small>ΦRUNNERS · R1-F2 · RESTRICTED STATIC BUILDS</small>
+<h2>One-file <em>workshop.</em></h2>
+<p>Fixed recipe in a network-disabled Docker container. Actual HTML output metadata, never fictional success or compiled executable claims.</p></div></div>
+<div class="clubhouse-grid">
+<div class="club-pane"><h3>Build shelf <small>SHA-256 CHECKED ON READ</small></h3><div id="build-pulse" class="workshop-stats" aria-live="polite">Reading local build receipts...</div></div>
+<div class="club-pane"><h3>Recent local builds <small>NOT INDEPENDENTLY ATTESTED</small></h3><div id="build-rows" role="list">Verifying output bytes...</div></div>
+</div>
+<p class="club-note">Trusted local sources only. A build must be explicitly approved through the local CLI: <code>npm run builds -- static-web &lt;source-artifact-id&gt; --i-approve-isolated-build</code>. The fixed recipe inlines three docs assets into one HTML file. Output stays private in <code>data/builds/</code>; no download or deployment endpoint exists. This is not a general-purpose bundler, independent attestation, or GitHub PR check.</p>
 </section>
 <section id="sandbox" class="section">
 <div class="heading"><div><small>R1-B · EXPLICIT OPERATOR-APPROVED CONTAINER TESTS</small><h2>Testing in the <em>tool shed.</em></h2>

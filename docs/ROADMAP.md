@@ -15,7 +15,7 @@
 | R1-D4B1 | **Opt-in passphrase-encrypted Ed25519 operator vault**, signed reports compatible with existing verifier; no migration | Merged PR #11 |
 | R1-D4B2A | **Non-destructive passphrase rewrap**, staged encrypted vault with same signing identity and explicit verification | PR #12 proposed |
 | R1-E | **ΦRunners** unified local CLI + read-only queue pulse, real outcome totals, fail-closed corrupt/changed lane handling | Merged PR #13 |
-| R1-F1 | **Artifact Forge:** operator-approved fixed-recipe Git commit source bundles, SHA-256 verified private inventory, test-job provenance (not compiled builds) | Proposed PR |\n| R1-F2 | Safe isolated allowlisted build recipes, retained logs, independent artifact validation | Planned |
+| R1-F1 | **Artifact Forge:** operator-approved source bundles, SHA-256 checked inventory and test-job provenance | Merged PR #14 |\n| R1-F2 | **Fixed static-web build** in restricted Docker from an approved source archive; SHA-256 output/receipt metadata, no remote publishing or broad script execution | Proposed PR |\n| R1-F3 | Durable failure receipts, independent reruns, reproducibility checks and stronger custody | Planned |
 | R1-G | Local capability registry and separate-machine transport threat model; no remote execution until security review | Planned |
 | R1-D4B2B | **Distinct signing-key identity** transition, OS/hardware key custody, signed anti-rollback policy and independent reruns | Planned |
 | R2 | Authenticated SSH push, users, repo permissions and receipts | Planned |

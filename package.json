@@ -20,6 +20,7 @@
     "recovery": "node src/recovery-cli.mjs",
     "phirunners": "node src/phirunners-cli.mjs",
     "artifacts": "node src/artifact-cli.mjs",
+    "builds": "node src/build-cli.mjs",
     "evidence": "node src/evidence-cli.mjs",
     "witness": "node src/witness-cli.mjs",
     "trust": "node src/trust-cli.mjs",
