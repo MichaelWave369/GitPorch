@@ -27,3 +27,8 @@
 #phirunners .club-row{padding:11px 0}
 #phirunners .club-row small{overflow-wrap:anywhere}
 #phirunners-pulse{line-height:1.5;font-size:16px}
+
+/* R1-F1 immutable source receipts; no browser mutations or download endpoints. */
+#artifacts .club-row{padding:11px 0}
+#artifacts .club-row small{overflow-wrap:anywhere}
+#artifact-pulse{line-height:1.5;font-size:16px}

@@ -18,6 +18,7 @@
   <a href="#clubhouse">◇ <span>PhiBots Clubhouse</span></a>
   <a href="#workshop">⚒ <span>The Workshop</span><i>R1-D1</i></a>
   <a href="#phirunners">Φ <span>PhiRunners</span><i>R1-E</i></a>
+  <a href="#artifacts">▣ <span>Artifact Forge</span><i>R1-F1</i></a>
   <a href="#recovery">⌁ <span>Recovery Doctor</span></a>
   <a href="#crew">⌘ <span>Porch Crew</span><i>R1</i></a>
   <a href="#ledger">▤ <span>The Ledger</span></a>
@@ -60,6 +61,16 @@
 <div class="club-pane"><h3>Recent jobs <small>REAL RECEIPTS · NO FALSE GREEN</small></h3><div id="phirunners-jobs" role="list">Checking recent jobs...</div></div>
 </div>
 <p class="club-note">Only the local operator can enqueue or execute jobs. Run <code>npm run phirunners -- status</code> for a CLI overview, or read <code>docs/PHIRUNNERS.md</code> for exact, explicit execution commands. A lock cannot prove a worker is running. Missing or altered receipts are never promoted to PASS. This page offers no remote runners, GitHub merge automation, public PR execution, or privileged browser buttons.</p>
+</section>
+<section id="artifacts" class="section">
+<div class="heading"><div><small>ARTIFACT FORGE · R1-F1 · PRIVATE SOURCE ARCHIVES</small>
+<h2>Bring home <em>the bundles.</em></h2>
+<p>Source archives packaged only after a matching locally reported Docker test PASS. SHA-256 checks prove archive-byte integrity, not a compiled build or independent execution.</p></div></div>
+<div class="clubhouse-grid">
+<div class="club-pane"><h3>Local artifact shelf <small>CHECKED ON READ · NOT PUBLISHED</small></h3><div id="artifact-pulse" class="workshop-stats" aria-live="polite">Checking local storage...</div></div>
+<div class="club-pane"><h3>Source receipts <small>COMMIT · TEST ID · DIGEST</small></h3><div id="artifact-rows" role="list">Verifying archived source bytes...</div></div>
+</div>
+<p class="club-note">Bundles are created only with explicit local CLI approval: <code>npm run artifacts -- bundle &lt;repo&gt; &lt;job-id&gt; --i-approve-source-archive</code>. They remain private in <code>data/artifacts/</code>. No HTTP downloads, publishing, auto-merge, arbitrary scripts, or release status badges. See <code>docs/ARTIFACT_FORGE.md</code>.</p>
 </section>
 <section id="sandbox" class="section">
 <div class="heading"><div><small>R1-B · EXPLICIT OPERATOR-APPROVED CONTAINER TESTS</small><h2>Testing in the <em>tool shed.</em></h2>
