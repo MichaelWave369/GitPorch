@@ -171,3 +171,46 @@ async function refreshRecoveryDoctor(){
  }
 }
 refreshRecoveryDoctor();
+
+
+async function refreshPhiRunners(){
+ const pulse=$('phirunners-pulse'),lanes=$('phirunners-lanes'),jobs=$('phirunners-jobs');
+ if(!pulse||!lanes||!jobs)return;
+ const make=(tag,value,cls='')=>{const e=document.createElement(tag);e.textContent=String(value);if(cls)e.className=cls;return e;};
+ try{
+  const response=await fetch('/api/phirunners',{cache:'no-store'});
+  if(!response.ok)throw Error('Local API unavailable');
+  const state=await response.json();
+  if(state.service!=='PhiRunners'||state.mode!=='LOCAL_READ_ONLY')throw Error('Unexpected PhiRunners API');
+  const all=state.totals;
+  pulse.replaceChildren(make('p',all
+    ?'Queued '+all.queued+' · Uncertain '+all.runningUncertain+' · Done '+all.done+' · PASS '+all.passed+' · FAIL '+all.failed+' · Other '+all.other
+    :'PARTIAL / UNVERIFIED · Combined totals intentionally withheld'));
+  lanes.replaceChildren();
+  for(const [name,lane] of Object.entries(state.lanes)){
+   const block=make('div','','club-row');
+   const title=name==='git'?'Git integrity':'Docker Node tests';
+   const detail=lane.counts
+      ?'Queued '+lane.counts.queued+' · Uncertain '+lane.counts.runningUncertain+' · Done '+lane.counts.done
+      :'COUNTS WITHHELD · '+(lane.reason||'UNVERIFIED');
+   block.append(make('strong',title+' · '+lane.health),
+     make('small',detail),
+     make('small','Worker lock: '+lane.workerLock+' · Not proof of a live process'));
+   lanes.append(block);
+  }
+  jobs.replaceChildren();
+  if(!state.jobs.length){jobs.append(make('p','No reportable job receipts.','club-empty'));return;}
+  for(const job of state.jobs){
+   const row=make('div','','club-row');
+   const outcome=job.status==='DONE'?(job.outcome||'UNVERIFIED'):job.status;
+   row.append(make('strong',job.repo+' · '+job.lane.toUpperCase()+' · '+outcome),
+      make('small',job.commit.slice(0,12)+' · '+job.id+' · LOCAL ONLY'));
+   jobs.append(row);
+  }
+ }catch{
+  pulse.replaceChildren(make('p','LOCAL ΦRUNNERS API UNAVAILABLE · No worker claims','club-empty'));
+  lanes.replaceChildren(make('p','Run GitPorch locally to read actual queue receipts.','club-empty'));
+  jobs.replaceChildren(make('p','No fabricated jobs shown.','club-empty'));
+ }
+}
+refreshPhiRunners();

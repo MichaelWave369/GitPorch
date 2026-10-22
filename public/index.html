@@ -17,6 +17,7 @@
   <a href="#repositories">⑂ <span>Repositories</span></a>
   <a href="#clubhouse">◇ <span>PhiBots Clubhouse</span></a>
   <a href="#workshop">⚒ <span>The Workshop</span><i>R1-D1</i></a>
+  <a href="#phirunners">Φ <span>PhiRunners</span><i>R1-E</i></a>
   <a href="#recovery">⌁ <span>Recovery Doctor</span></a>
   <a href="#crew">⌘ <span>Porch Crew</span><i>R1</i></a>
   <a href="#ledger">▤ <span>The Ledger</span></a>
@@ -49,6 +50,16 @@
 <div class="club-pane"><h3>Worker queue <small>REAL LOCAL COUNTS</small></h3><div class="workshop-stats" id="workshop-counts" aria-live="polite">Checking queue receipts...</div></div>
 <div class="club-pane"><h3>Job receipts <small>GIT FSCK ONLY · NOT CI</small></h3><div id="workshop-jobs">Checking local receipts...</div></div>
 </div><p class="club-note">Only local operator CLI commands enqueue or execute jobs. Jobs that outlive their worker are flagged uncertain, never automatically promoted to pass. Use <code>node src/porch-crew-cli.mjs list</code> for full records. No build scripts or untrusted code are executed.</p>
+</section>
+<section id="phirunners" class="section">
+<div class="heading"><div><small>ΦRUNNERS · R1-E · LOCAL OPERATOR TELEMETRY</small>
+<h2>The build <em>lanterns.</em></h2>
+<p>Two real Porch Crew lanes in one read-only view. Queue receipts, not simulated GitHub runners or independently verified CI.</p></div></div>
+<div class="clubhouse-grid">
+<div class="club-pane"><h3>Local queue pulse <small>NO AUTO-EXECUTION</small></h3><div id="phirunners-pulse" class="workshop-stats" aria-live="polite">Checking local receipts...</div><div id="phirunners-lanes">Reading worker lanes...</div></div>
+<div class="club-pane"><h3>Recent jobs <small>REAL RECEIPTS · NO FALSE GREEN</small></h3><div id="phirunners-jobs" role="list">Checking recent jobs...</div></div>
+</div>
+<p class="club-note">Only the local operator can enqueue or execute jobs. Run <code>npm run phirunners -- status</code> for a CLI overview, or read <code>docs/PHIRUNNERS.md</code> for exact, explicit execution commands. A lock cannot prove a worker is running. Missing or altered receipts are never promoted to PASS. This page offers no remote runners, GitHub merge automation, public PR execution, or privileged browser buttons.</p>
 </section>
 <section id="sandbox" class="section">
 <div class="heading"><div><small>R1-B · EXPLICIT OPERATOR-APPROVED CONTAINER TESTS</small><h2>Testing in the <em>tool shed.</em></h2>
