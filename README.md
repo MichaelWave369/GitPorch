@@ -229,6 +229,20 @@ npm start
 
 Every source tar and its receipt live under ignored private `data/artifacts/`. The read-only local inventory rechecks SHA-256 and metadata and **fails closed** on missing, partial or altered files. Packaging success means the *source bytes* were archived, **not** a compiled build, signed supply-chain attestation, or permission to merge or ship. See [Artifact Forge operator guide](docs/ARTIFACT_FORGE.md).
 
+## Isolated Builds R1-F2: fixed-recipe local HTML output
+
+R1-F2 introduces the first narrowly allowlisted **actual build transformation**. Using a previously verified Artifact Forge source archive, a pinned local Docker image and an explicit operator approval flag, PhiRunners can combine the canonical `docs/index.html`, `docs/styles.css` and `docs/app.js` into a single HTML file inside an offline, resource-limited container.
+
+```powershell
+npm run builds -- list
+# After creating a source artifact with R1-F1:
+npm run builds -- static-web <source-artifact-id> --i-approve-isolated-build
+npm start
+# http://127.0.0.1:3690/#builds
+```
+
+The private `data/builds/` output and receipt are checksum-validated on each inventory read. Only metadata is exposed via read-only `GET /api/builds`; HTML is **never** served by the dashboard. R1-F2 does not install dependencies, run repository scripts on the host, provide a general-purpose bundler, certify independent execution, or automatically ship a build. The inlined output can still refer to other assets. Read [R1-F2 operating guide](docs/ISOLATED_BUILDS.md).
+
 ## NOT yet implemented
 
 Remote pushes, SSH access, accounts/permissions, PRs/issues, encrypted transport, production CI isolation, independently re-executed builds or attested runners, automated mirroring, TMC integration, or production network deployment.

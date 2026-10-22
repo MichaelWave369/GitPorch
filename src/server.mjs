@@ -9,6 +9,7 @@ import { snapshot as sandboxSnapshot } from './sandbox-ci.mjs';
 import { doctor as recoveryDoctor } from './recovery.mjs';
 import { phirunnersSnapshot } from './phirunners.mjs';
 import { artifactSnapshot } from './artifact-forge.mjs';
+import { buildSnapshot } from './isolated-build.mjs';
 
 const publicDir = fileURLToPath(new URL('../public/', import.meta.url));
 const assets = new Map([
@@ -46,6 +47,7 @@ export function makeHandler({ dataDir = getDataDir(), daemonState = () => 'not_s
       if (path === '/api/recovery') return json(res, 200, await recoveryDoctor(dataDir));
       if (path === '/api/phirunners') return json(res, 200, await phirunnersSnapshot(dataDir));
       if (path === '/api/artifacts') return json(res, 200, await artifactSnapshot(dataDir));
+      if (path === '/api/builds') return json(res, 200, await buildSnapshot(dataDir));
       const matched = /^\/api\/repos\/([a-zA-Z0-9._-]+)\/commits$/.exec(path);
       if (matched) {
         const commits = await readCommits(dataDir, matched[1], 12);

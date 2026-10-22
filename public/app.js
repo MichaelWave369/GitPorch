@@ -242,3 +242,31 @@ async function refreshArtifactForge(){
  }
 }
 refreshArtifactForge();
+
+
+async function refreshIsolatedBuilds(){
+ const pulse=$('build-pulse'),rows=$('build-rows');
+ if(!pulse||!rows)return;
+ const elem=(tag,content,cls='')=>{const x=document.createElement(tag);x.textContent=String(content);if(cls)x.className=cls;return x};
+ try{
+  const response=await fetch('/api/builds',{cache:'no-store'});
+  if(!response.ok)throw Error('Local build receipts unavailable');
+  const value=await response.json();
+  if(value.mode!=='LOCAL_READ_ONLY'||value.assurance!=='SHA256_AND_LOCAL_RECEIPT_NOT_ATTESTED')
+    throw Error('Unexpected build endpoint response');
+  pulse.replaceChildren(elem('p',value.count+' hash-checked local static HTML build(s) · NOT ATTESTED'));
+  rows.replaceChildren();
+  if(!value.builds.length){rows.append(elem('p','No verified builds yet. Requires approved local Docker execution.','club-empty'));return;}
+  for(const build of value.builds.slice(0,12)){
+   const row=elem('div','','club-row');
+   row.append(elem('strong',build.repo+' · '+build.recipe+' · '+build.status),
+     elem('small','Commit '+build.commit.slice(0,12)+' · Source '+build.sourceArtifactId),
+     elem('small',build.bytes+' bytes · SHA-256 '+build.sha256));
+   rows.append(row);
+  }
+ }catch{
+  pulse.replaceChildren(elem('p','UNVERIFIED / UNAVAILABLE · No green build claims','club-empty'));
+  rows.replaceChildren(elem('p','Inspect local storage for partial or tampered output.','club-empty'));
+ }
+}
+refreshIsolatedBuilds();
