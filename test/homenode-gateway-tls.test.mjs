@@ -6,7 +6,7 @@ import https from 'node:https';
 import net from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { startGateway } from '../src/homenode-gateway.mjs';
+import { loadGatewayCredentials, startGateway } from '../src/homenode-gateway.mjs';
 
 const TOKEN = '0123456789abcdef'.repeat(4);
 
@@ -50,8 +50,11 @@ test('real TLS listener requires a trusted certificate and bearer token', async 
     ], { encoding: 'utf8', timeout: 30000 });
     if (gen.error || gen.status !== 0) return t.skip('Installed OpenSSL cannot generate an IP-SAN certificate');
     await writeFile(token, TOKEN);
+    const files = { certificate: cert, privateKey: key, token };
+    assert.equal((await loadGatewayCredentials(files, '127.0.0.1')).token, TOKEN);
+    await assert.rejects(loadGatewayCredentials(files, '192.168.1.50'), /Subject Alternative Name/);
     const port = await availablePort();
-    server = await startGateway({ bind: '127.0.0.1', port, files: { certificate: cert, privateKey: key, token } });
+    server = await startGateway({ bind: '127.0.0.1', port, files });
     const trustedCA = await readFile(cert);
     const allowed = await secureGet(port, trustedCA, '/v1/capabilities', TOKEN);
     assert.equal(allowed.status, 200);
