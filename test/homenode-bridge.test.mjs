@@ -56,3 +56,23 @@ test('failed clone never creates a destination repo and releases import lock', a
   await assert.rejects(importMirrorFromSource('Absent', join(root, 'does-not-exist'), data));
   assert.deepEqual(await readdir(join(data, 'repos')), []);
 }));
+
+
+test('R1-H2 catalogs re-evaluate stale eligibility under expanded Windows-safe naming', async () => fixture(async root => {
+  const longName = 'LongProject' + 'A'.repeat(52);
+  const oldCatalog = {
+    schema: 'gitporch.public-catalog.v1', owner: 'MichaelWave369',
+    visibility: 'PUBLIC_ONLY', count: 2, repositories: [
+      { name: longName, eligible: false, reason: 'Old 48-character limit' },
+      { name: 'CON', eligible: true, reason: null },
+    ],
+  };
+  const file = join(root, 'old-catalog.json');
+  await writeFile(file, JSON.stringify(oldCatalog));
+  const loaded = await loadCatalog(file);
+  assert.equal(loaded.repositories[0].eligible, true);
+  assert.equal(loaded.repositories[1].eligible, false);
+  const plan = await planImport(loaded, join(root, 'data'));
+  assert.equal(plan.ready, 1);
+  assert.equal(plan.repositories[1].status, 'UNSUPPORTED_NAME');
+}));
