@@ -13,10 +13,10 @@ async function main() {
   const args = process.argv.slice(2);
   if (args.length === 1 && args[0] === 'preflight') {
     const config = parseGatewayConfig();
-    await loadGatewayCredentials(config.files);
+    await loadGatewayCredentials(config.files, config.bind);
     console.log(JSON.stringify({
       preflight: 'CONFIGURATION_FILES_READABLE', interface: config.bind, port: config.port,
-      caveat: 'Not a certificate trust audit or proof of network safety. No listener started.',
+      caveat: 'Certificate SAN, validity, key match and token checked; CA trust and network safety are not certified. No listener started.',
     }, null, 2));
     return;
   }
