@@ -3,7 +3,7 @@ import { promisify } from 'node:util';
 import { mkdir, readdir, lstat } from 'node:fs/promises';
 import { resolve, join, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { LOCAL_REPOSITORY_SCAN_CONCURRENCY, validLocalRepositoryName, assertLocalRepositoryCapacity } from './repository-policy.mjs';
+import { MAX_LOCAL_REPOSITORIES, LOCAL_REPOSITORY_SCAN_CONCURRENCY, validLocalRepositoryName, assertLocalRepositoryCapacity } from './repository-policy.mjs';
 
 const exec = promisify(execFile);
 const here = fileURLToPath(new URL('..', import.meta.url));
@@ -50,6 +50,9 @@ export async function createRepo(dataDir, name) {
   if (existing.some((entry) => entry.toLowerCase() === `${name}.git`.toLowerCase())) {
     throw new Error('Repository already exists (names are case-insensitive)');
   }
+  if (existing.filter(entry => entry.toLowerCase().endsWith('.git')).length >= MAX_LOCAL_REPOSITORIES) {
+    throw new Error('GitPorch ' + MAX_LOCAL_REPOSITORIES + '-repository capacity reached; refusing create');
+  }
   // No shell, no user-provided flags, explicit path position, bare only.
   await git(['init', '--bare', '--initial-branch=main', '--', path]);
   return { name, path };
@@ -58,11 +61,14 @@ export async function createRepo(dataDir, name) {
 async function findBareRepos(dataDir) {
   const root = await ensureRepos(dataDir);
   const entries = await readdir(root, { withFileTypes: true });
-  const repos = entries.filter((ent) => ent.isDirectory() && ent.name.endsWith('.git') && validSlug(ent.name.slice(0, -4)))
-    .sort((a, b) => a.name.localeCompare(b.name, 'en'));
-  // Never silently truncate: callers use this inventory for backups and safety decisions.
-  assertLocalRepositoryCapacity(repos.length);
-  return repos.map((ent) => ({ name: ent.name.slice(0, -4), path: join(root, ent.name) }));
+  const candidates = entries.filter(ent => ent.isDirectory() && ent.name.toLowerCase().endsWith('.git'));
+  // Never silently drop unsupported repo directories: they may contain the only copy.
+  const unsupported = candidates.filter(ent => !validSlug(ent.name.slice(0, -4)));
+  if (unsupported.length) throw new Error('Unsupported local Git repository directory; inspect manually: ' +
+    unsupported[0].name);
+  assertLocalRepositoryCapacity(candidates.length);
+  const repos = candidates.sort((a, b) => a.name.localeCompare(b.name, 'en'));
+  return repos.map(ent => ({ name: ent.name.slice(0, -4), path: join(root, ent.name) }));
 }
 
 async function boundedMap(items, limit, fn) {
