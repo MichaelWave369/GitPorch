@@ -60,8 +60,13 @@ test('requires existing, separate, local credential files and high-entropy token
     await writeFile(token, 'weak');
     await assert.rejects(loadGatewayCredentials(config.files), /43-256/);
     await writeFile(token, TOKEN);
-    await symlink(token, join(directory, 'token-symlink.txt'));
-    await assert.rejects(loadGatewayCredentials({ ...config.files, token: join(directory, 'token-symlink.txt') }), /regular/);
+    try {
+      await symlink(token, join(directory, 'token-symlink.txt'));
+      await assert.rejects(loadGatewayCredentials({ ...config.files, token: join(directory, 'token-symlink.txt') }), /regular/);
+    } catch (error) {
+      // Creating file symlinks may require developer mode or elevated privileges on Windows.
+      if (error?.code !== 'EPERM' && error?.code !== 'EACCES') throw error;
+    }
     await assert.rejects(loadGatewayCredentials({ ...config.files, token: cert }), /43-256|distinct/);
     assert.throws(() => parseGatewayConfig({ ...env, GITPORCH_HOMENODE_TLS_KEY_FILE: 'relative-key.pem' }), /absolute/);
   } finally {
