@@ -91,10 +91,14 @@ async function existingNames(dataDir) {
 
 export async function planImport(catalog, dataDir = getDataDir()) {
   const { names } = await existingNames(dataDir);
+  assertLocalRepositoryCapacity(names.size);
+  const atCapacity = names.size >= MAX_LOCAL_REPOSITORIES;
   const repositories = catalog.repositories.map(r => ({ name: r.name,
-    status: !r.eligible ? 'UNSUPPORTED_NAME' : names.has((r.name + '.git').toLowerCase()) ? 'ALREADY_LOCAL' : 'READY_TO_IMPORT',
+    status: !r.eligible ? 'UNSUPPORTED_NAME' : names.has((r.name + '.git').toLowerCase()) ?
+      'ALREADY_LOCAL' : atCapacity ? 'AT_CAPACITY' : 'READY_TO_IMPORT',
   }));
   return { owner: catalog.owner, source: 'PUBLIC_GITHUB_CATALOG',
+    capacity: MAX_LOCAL_REPOSITORIES, localEntries: names.size,
     ready: repositories.filter(r => r.status === 'READY_TO_IMPORT').length, repositories,
     notice: 'This is an offline local comparison. No network requests, copies, pushes, or server exposure.' };
 }
@@ -124,6 +128,8 @@ export async function importMirrorFromSource(name, source, dataDir = getDataDir(
     await git(['--git-dir', clone, 'config', '--remove-section', 'remote.origin']);
     const beforePublish = await existingNames(dataDir);
     if (beforePublish.names.has((name + '.git').toLowerCase())) throw new Error('Destination appeared during verification; refusing overwrite');
+    assertLocalRepositoryCapacity(beforePublish.names.size);
+    if (beforePublish.names.size >= MAX_LOCAL_REPOSITORIES) throw new Error('Repository capacity filled during clone; import refused');
     await rename(clone, target);
     return { name, status: 'IMPORTED_VERIFIED', refs: refs.split('\n').filter(Boolean).length,
       localPath: target, synchronization: 'DISABLED' };
