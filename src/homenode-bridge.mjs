@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { lstat, mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, resolve } from 'node:path';
 import { git, getDataDir, repoRoot, validSlug } from './git.mjs';
+import { MAX_LOCAL_REPOSITORIES, MAX_REPOSITORY_NAME_LENGTH, assertLocalRepositoryCapacity } from './repository-policy.mjs';
 
 const SCHEMA = 'gitporch.public-catalog.v1';
 const LIMIT = 30; // 3,000 public repos; fail rather than silently truncate.
@@ -34,7 +35,7 @@ export async function discoverPublic(owner, fetcher = fetch) {
       results.push({
         name: item.name,
         eligible: validSlug(item.name),
-        reason: validSlug(item.name) ? null : 'GitPorch requires a slug of 48 characters or fewer',
+        reason: validSlug(item.name) ? null : 'GitPorch requires a Windows-safe slug of ' + MAX_REPOSITORY_NAME_LENGTH + ' characters or fewer',
         archived: Boolean(item.archived), fork: Boolean(item.fork),
         empty: Number.isFinite(item.size) ? item.size === 0 : null,
         sizeKb: Number.isSafeInteger(item.size) && item.size >= 0 ? item.size : null,
@@ -105,7 +106,8 @@ export async function importMirrorFromSource(name, source, dataDir = getDataDir(
   const { root, names } = await existingNames(dataDir);
   const target = join(root, name + '.git');
   if (names.has((name + '.git').toLowerCase())) throw new Error('Repository already exists; import will never overwrite');
-  if (names.size >= 200) throw new Error('GitPorch 200-repository inventory cap reached; import refused');
+  assertLocalRepositoryCapacity(names.size);
+  if (names.size >= MAX_LOCAL_REPOSITORIES) throw new Error('GitPorch ' + MAX_LOCAL_REPOSITORIES + '-repository capacity reached; import refused');
   const lock = join(root, '.import-lock-' + name.toLowerCase());
   await mkdir(lock); // atomic reservation against concurrent HomeNode importers
   let stage;
