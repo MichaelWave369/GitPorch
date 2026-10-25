@@ -12,9 +12,9 @@ async function withData(fn) {
 }
 
 test('rejects unsafe repository names', () => {
-  for (const name of ['../secret','..', '.', '-flag', 'project.git', 'name/', 'name\\other', 'a b', '', 'a'.repeat(49), 'a.', 'é', 'x\n'])
+  for (const name of ['../secret','..', '.', '-flag', 'project.git', 'name/', 'name\\other', 'a b', '', 'a'.repeat(101), 'a.', 'é', 'x\n', 'CON', 'nul.data', 'LPT1'])
     assert.equal(validSlug(name), false);
-  for (const name of ['my-repo', 'test_thing', 'v1.2', 'ABC123']) assert.equal(validSlug(name), true);
+  for (const name of ['my-repo', 'test_thing', 'v1.2', 'ABC123', 'a'.repeat(100)]) assert.equal(validSlug(name), true);
 });
 
 test('creates real bare repos and reads pushed Git commits', async () => withData(async dir => {
