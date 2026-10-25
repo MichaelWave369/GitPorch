@@ -120,6 +120,20 @@ npm run gateway -- serve --i-accept-lan-read-only
 
 This gateway never starts with `npm start`. Its endpoints require a bearer token, valid TLS and matching IP Host header. Browsers, CORS and cookies are deliberately unsupported. **Do not forward/bridge ports 3690, 9418 or 3743 to the WAN.** No EnterTheField.org/ PhiOS app is modified by this change. Read the [HomeNode network/operator guide](docs/HOMENODE_NETWORK.md) and complete an independent security review before LAN deployment.
 
+## HomeNode R1-H5: PhiOS native companion trust client
+
+The **one-shot local CLI** selects Public, Local or Offline mode without claiming untested service readiness. In Local mode it makes a single TLS-validated, SHA-256 certificate-pinned, authenticated request to the R1-H4 **metadata-only** gateway.
+
+```powershell
+npm run companion -- status --mode offline
+npm run companion -- status --mode public
+# First set private IP, operator-verified cert fingerprint, private certificate and token-file paths:
+npm run companion -- preflight
+npm run companion -- status --mode local
+```
+
+Missing LAN service, invalid certificate or token, or unexpected capability schema fails closed to OFFLINE **selection**, with `offlineServicesVerified: false`. No automatic public fallback, Git pushes, secrets in browser, installed daemon or EnterTheField site changes. See [companion operating and trust guide](docs/HOMENODE_COMPANION.md).
+
 ## PhiBots Clubhouse (local R0.3)
 
 The Clubhouse records **local contributor labels, proposals referencing actual Git commits, and operator review notes**. It does not authenticate human or bot identity, certify any test, run build scripts, or merge branches.
