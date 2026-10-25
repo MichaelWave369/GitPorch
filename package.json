@@ -24,7 +24,8 @@
     "evidence": "node src/evidence-cli.mjs",
     "witness": "node src/witness-cli.mjs",
     "trust": "node src/trust-cli.mjs",
-    "vault": "node src/vault-cli.mjs"
+    "vault": "node src/vault-cli.mjs",
+    "homenode": "node src/homenode-cli.mjs"
   },
   "license": "MIT"
 }
