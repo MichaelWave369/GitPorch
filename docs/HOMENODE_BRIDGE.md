@@ -16,7 +16,7 @@ npm run bridge -- discover MichaelWave369 'D:\PhiOSCatalog' --i-approve-public-d
 
 This contacts GitHub's public REST user-repositories endpoint and follows pagination in 100-repository pages, stopping when complete. It writes a **new** JSON catalog under the chosen directory. No existing file is overwritten. Discovery stops with an error rather than presenting a partial catalog if GitHub fails or the 3,000-public-repository safety limit is reached.
 
-The JSON includes names, archival/fork indicators, rough GitHub-reported repo sizes and eligibility against GitPorch's current 48-character repo-name rule. **Private repos are invisible to this endpoint.** GitHub may rate-limit unauthenticated public discovery.
+The JSON includes names, archival/fork indicators, rough GitHub-reported repo sizes and eligibility against GitPorch's current 100-character, Windows-safe repo-name rule. **Private repos are invisible to this endpoint.** GitHub may rate-limit unauthenticated public discovery.
 
 ## 2. Plan locally (no internet required)
 
@@ -26,7 +26,7 @@ Use the real catalog path returned above. The name below is illustrative:
 npm run bridge -- plan 'D:\PhiOSCatalog\gitporch-public-MichaelWave369-<generated-id>.json'
 ~~~
 
-Every public catalog entry reports one of: `READY_TO_IMPORT`, `ALREADY_LOCAL`, or `UNSUPPORTED_NAME`. The plan is not proof that all your GitHub repos have been discovered or that all storage requirements are affordable. GitPorch still has a 200-repo dashboard/inventory cap. Check the destination machine's free disk space before importing large repositories.
+Every public catalog entry reports one of: `READY_TO_IMPORT`, `ALREADY_LOCAL`, or `UNSUPPORTED_NAME`. The plan is not proof that all your GitHub repos have been discovered or that all storage requirements are affordable. GitPorch now allows up to 2,048 supported local repositories; inventory refuses overflow rather than truncating. Check the destination machine's free disk space before importing large repositories.
 
 ## 3. Import one approved repository (internet required)
 
@@ -37,7 +37,7 @@ npm run homenode -- inventory
 
 `PhiOS` must be an eligible name in the catalog, and the corresponding repository must still exist publicly on GitHub. The bridge constructs the GitHub HTTPS URL from the validated owner/name; it does not trust URLs supplied by catalog files and disables Git credential helpers for the clone.
 
-The importer reserves a private staging directory, runs `git clone --mirror` into it, checks that refs exist, runs `git fsck`, removes the remote's configured origin, and only then promotes the verified bare Git repo into GitPorch's local `data/repos/` directory. It refuses existing repository names, including case-insensitive matches, and refuses new imports when 200 repo entries are present. On normal failures, staging and lock files are cleaned; on a machine crash, manually inspect orphan `.incoming-*` and `.import-lock-*` entries before recovery. Do not casually delete locks belonging to active imports.
+The importer reserves a private staging directory, runs `git clone --mirror` into it, checks that refs exist, runs `git fsck`, removes the remote's configured origin, and only then promotes the verified bare Git repo into GitPorch's local `data/repos/` directory. It refuses existing repository names, including case-insensitive matches, and refuses new imports when 2,048 repo entries are present. On normal failures, staging and lock files are cleaned; on a machine crash, manually inspect orphan `.incoming-*` and `.import-lock-*` entries before recovery. Do not casually delete locks belonging to active imports.
 
 **Imported means a local, independently usable Git repository**, not a GitHub issue/PR migration, an automatic build, or automatic replication. GitHub cannot modify the local copy on its own. There is deliberately no automatic push-back.
 
