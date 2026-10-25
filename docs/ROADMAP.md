@@ -21,8 +21,10 @@
 | R2 | Authenticated SSH push, users, repo permissions and receipts | Planned |
 | R3 | Pull requests, branch protection, code review, issues, artifacts, actual-status badges | Planned |
 | R4 | Optional GitHub/GitLab mirroring and governed AI-agent adapters | Planned |
-| R1-H1 | **HomeNode**: local inventory and per-repo non-overwriting Git bundle snapshots with SHA-256 and verified mirror restore; no LAN/sync | Proposed PR |
-| R1-H2 | **Public GitHub bridge**: paginated public catalog, offline import plan and one-at-a-time verified mirror import; no sync/private data | Proposed PR |
+| R1-H1 | **HomeNode**: local inventory and per-repo non-overwriting Git bundle snapshots with SHA-256 and verified mirror restore; no LAN/sync | Merged PR #16 |
+| R1-H2 | **Public GitHub bridge**: paginated public catalog, offline import plan and one-at-a-time verified mirror import; no sync/private data | Merged PR #17 |
+| R1-H3 | **Capacity & namespace**: up to 2,048 local repos, Windows-safe 100-character names, bounded Git worker scans, fail-closed overflow/no truncated listing | Proposed PR |
+| R1-H4 | Optional authenticated LAN read-only status boundary, trust model, and PhiOS/EnterTheField endpoint selection design | Planned |
 | Pages | Public static demonstration with fictional history only | Merged PR #2 |
 
 **Non-negotiable invariants**
