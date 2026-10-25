@@ -16,7 +16,7 @@ const example = (name) => ({ name, owner: { login: 'MichaelWave369' }, private: 
 
 test('public discovery paginates completely, marks unsupported names, and plans locally', async () => fixture(async root => {
   const page1 = Array.from({ length: 100 }, (_, i) => example('repo' + i));
-  const page2 = [example('TooLongName' + 'a'.repeat(100))];
+  const page2 = [example('CON')];
   const urls = [];
   const fetcher = async url => { urls.push(url); return { ok: true, json: async () => urls.length === 1 ? page1 : page2 }; };
   const catalog = await discoverPublic('MichaelWave369', fetcher);
