@@ -100,6 +100,14 @@ The catalog directory must already exist. Import never replaces an existing loca
 
 Read [the bridge operator guide](docs/HOMENODE_BRIDGE.md) and verify an external snapshot before relying on offline recovery.
 
+## HomeNode R1-H3: scaling the local Git repository namespace
+
+The HomeNode capacity policy now supports **up to 2,048 supported local repositories** and GitPorch names **up to 100 characters** (excluding Windows reserved device basenames and unsafe filename patterns). Inventory no longer silently truncates at 200. Repository scans use a maximum of eight simultaneous Git workers rather than spawning subprocesses for every repository at once.
+
+Existing repository content is not renamed or migrated. All CLI operations remain single-operator and localhost-only; this is a storage-capacity and catalog correctness update, **not** an authenticated LAN server or automatic cloud synchronization.
+
+See [R1-H3 operating notes](docs/HOMENODE_CAPACITY.md) for limitations and validation.
+
 ## PhiBots Clubhouse (local R0.3)
 
 The Clubhouse records **local contributor labels, proposals referencing actual Git commits, and operator review notes**. It does not authenticate human or bot identity, certify any test, run build scripts, or merge branches.
