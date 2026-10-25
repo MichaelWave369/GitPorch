@@ -72,6 +72,20 @@ npm start
 - Native `node --test` suite; does not require GitHub Actions or any npm dependency downloads.
 - **Showcase mode** if the local API is not available: fictional sample repositories are explicitly labeled.
 
+## PhiOS HomeNode R1-H1: offline snapshot pilot
+
+The optional single-operator HomeNode CLI inventories **local** GitPorch repositories and makes per-repository full-history Git bundles with SHA-256 manifests and a verified temporary mirror restoration. These commands do not install or access a remote server, sync GitHub, back up GitHub PRs/LFS, or open network listeners.
+
+```powershell
+npm run homenode -- inventory
+# Use an existing backup directory outside GitPorch's data directory:
+npm run homenode -- backup hello-world 'E:\PhiOSBackups'
+# Then use the generated snapshot directory returned by the command:
+npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
+```
+
+Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
+
 ## PhiBots Clubhouse (local R0.3)
 
 The Clubhouse records **local contributor labels, proposals referencing actual Git commits, and operator review notes**. It does not authenticate human or bot identity, certify any test, run build scripts, or merge branches.
