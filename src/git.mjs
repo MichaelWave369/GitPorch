@@ -17,7 +17,7 @@ export function getDataDir(value = process.env.GITPORCH_DATA_DIR) {
 export function repoRoot(dataDir) { return resolve(dataDir, 'repos'); }
 
 function repoPath(dataDir, name) {
-  if (!validSlug(name)) throw new Error('Invalid repo name (letters, numbers, dot, dash, underscore; max 48)');
+  if (!validSlug(name)) throw new Error('Invalid repo name (Windows-safe letters, numbers, dot, dash, underscore; max 100)');
   const root = repoRoot(dataDir);
   const path = resolve(root, `${name}.git`);
   const rel = relative(root, path);
