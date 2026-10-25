@@ -56,3 +56,10 @@ Optional encrypted operator signing uses scrypt (`N=32768,r=8,p=1`) with randoml
 ## R1-D4B2A passphrase rewrap limitations
 
 The passphrase rewrap copies the **same Ed25519 private key** into a separately encrypted staged vault with new scrypt salt and AES-GCM nonce. The original vault is deliberately never overwritten, deleted or revoked. It is not signing-key rotation: an attacker who already has the underlying private key can continue forging reports, and revoking the single public fingerprint affects both vault copies. New and old passphrases are entered only through non-echoing interactive terminal prompts but still reside temporarily in process memory. A strong passphrase, secure private backups, manually inspected ACLs, and explicit owner custody remain essential. The operation is neither authenticated by a remote witness nor protected against local filesystem rollback or malicious compromise.
+
+## R1-H4 experimental separate HTTPS HomeNode gateway
+
+`src/homenode-gateway.mjs` adds an explicitly launched, independent HTTPS **metadata-only** gateway. Its only routes are authenticated `GET /v1/health` and `GET /v1/capabilities`; no Git repository data or mutation is exposed. It rejects wildcard/public bind addresses, unauthenticated callers, mismatched Host headers, browser Origin/cookies, plain HTTP and other routes/methods. The regular GitPorch server and Git daemon stay on loopback.
+
+**This does NOT mean GitPorch is production-LAN ready.** Bearer tokens require strict on-disk protection, certificate SAN/trust must be independently verified, token possession does not establish user identity, and cross-device security is not audited. Denial-of-service, trusted-host compromise, network ACL bypass, code vulnerabilities and key theft remain threats. Restrict the experimental port to explicitly approved LAN peers; do not use WAN forwarding, a public-facing reverse proxy or tunnels. Never embed the token in public website code. The gateway intentionally supports no browser CORS and cannot directly power EnterTheField.org's public frontend. Read [the threat model and operator guide](docs/HOMENODE_NETWORK.md).
+

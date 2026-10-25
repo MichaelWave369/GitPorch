@@ -108,6 +108,18 @@ Existing repository content is not renamed or migrated. All CLI operations remai
 
 See [R1-H3 operating notes](docs/HOMENODE_CAPACITY.md) for limitations and validation.
 
+## HomeNode R1-H4: experimental authenticated LAN capability gateway
+
+An **independent, opt-in HTTPS service** can answer versioned HomeNode health/capability requests for trusted native PhiOS companions on a private LAN. It **does not** expose any repositories, Git operations, builds, API writes or the original GitPorch dashboard.
+
+```powershell
+# First configure one explicit private LAN IPv4 and private TLS cert/key/token file paths.
+npm run gateway -- preflight
+npm run gateway -- serve --i-accept-lan-read-only
+```
+
+This gateway never starts with `npm start`. Its endpoints require a bearer token, valid TLS and matching IP Host header. Browsers, CORS and cookies are deliberately unsupported. **Do not forward/bridge ports 3690, 9418 or 3743 to the WAN.** No EnterTheField.org/ PhiOS app is modified by this change. Read the [HomeNode network/operator guide](docs/HOMENODE_NETWORK.md) and complete an independent security review before LAN deployment.
+
 ## PhiBots Clubhouse (local R0.3)
 
 The Clubhouse records **local contributor labels, proposals referencing actual Git commits, and operator review notes**. It does not authenticate human or bot identity, certify any test, run build scripts, or merge branches.

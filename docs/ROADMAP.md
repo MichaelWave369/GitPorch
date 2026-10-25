@@ -23,8 +23,9 @@
 | R4 | Optional GitHub/GitLab mirroring and governed AI-agent adapters | Planned |
 | R1-H1 | **HomeNode**: local inventory and per-repo non-overwriting Git bundle snapshots with SHA-256 and verified mirror restore; no LAN/sync | Merged PR #16 |
 | R1-H2 | **Public GitHub bridge**: paginated public catalog, offline import plan and one-at-a-time verified mirror import; no sync/private data | Merged PR #17 |
-| R1-H3 | **Capacity & namespace**: up to 2,048 local repos, Windows-safe 100-character names, bounded Git worker scans, fail-closed overflow/no truncated listing | Proposed PR |
-| R1-H4 | Optional authenticated LAN read-only status boundary, trust model, and PhiOS/EnterTheField endpoint selection design | Planned |
+| R1-H3 | **Capacity & namespace**: up to 2,048 local repos, Windows-safe 100-character names, bounded Git worker scans, fail-closed overflow/no truncated listing | Merged PR #18 |
+| R1-H4 | **Experimental independent TLS gateway**: bearer-authenticated read-only health/capabilities, explicit private IPv4 bind and operator consent, PhiOS server-mode trust contract; no Git or browser access | Proposed PR |
+| R1-H5 | PhiOS native companion trust and endpoint selection, certificate pinning, local credential custody and verified failover | Planned |
 | Pages | Public static demonstration with fictional history only | Merged PR #2 |
 
 **Non-negotiable invariants**
