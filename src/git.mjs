@@ -3,7 +3,7 @@ import { promisify } from 'node:util';
 import { mkdir, readdir, lstat } from 'node:fs/promises';
 import { resolve, join, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MAX_LOCAL_REPOSITORIES, LOCAL_REPOSITORY_SCAN_CONCURRENCY, validLocalRepositoryName, assertLocalRepositoryCapacity } from './repository-policy.mjs';
+import { LOCAL_REPOSITORY_SCAN_CONCURRENCY, validLocalRepositoryName, assertLocalRepositoryCapacity } from './repository-policy.mjs';
 
 const exec = promisify(execFile);
 const here = fileURLToPath(new URL('..', import.meta.url));
