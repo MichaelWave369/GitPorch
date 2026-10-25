@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { lstat, mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, resolve } from 'node:path';
 import { git, getDataDir, repoRoot, validSlug } from './git.mjs';
+import { MAX_LOCAL_REPOSITORIES, MAX_REPOSITORY_NAME_LENGTH, assertLocalRepositoryCapacity } from './repository-policy.mjs';
 
 const SCHEMA = 'gitporch.public-catalog.v1';
 const LIMIT = 30; // 3,000 public repos; fail rather than silently truncate.
@@ -34,7 +35,7 @@ export async function discoverPublic(owner, fetcher = fetch) {
       results.push({
         name: item.name,
         eligible: validSlug(item.name),
-        reason: validSlug(item.name) ? null : 'GitPorch requires a slug of 48 characters or fewer',
+        reason: validSlug(item.name) ? null : 'GitPorch requires a Windows-safe slug of ' + MAX_REPOSITORY_NAME_LENGTH + ' characters or fewer',
         archived: Boolean(item.archived), fork: Boolean(item.fork),
         empty: Number.isFinite(item.size) ? item.size === 0 : null,
         sizeKb: Number.isSafeInteger(item.size) && item.size >= 0 ? item.size : null,
@@ -73,11 +74,16 @@ export async function loadCatalog(file) {
   }
   const seen = new Set();
   for (const r of data.repositories) {
-    if (!r || !safeName(r.name) || r.eligible !== validSlug(r.name) || seen.has(r.name.toLowerCase()))
-      throw new Error('Invalid, duplicate, or inconsistent catalog entry');
+    if (!r || !safeName(r.name) || typeof r.eligible !== 'boolean' || seen.has(r.name.toLowerCase()))
+      throw new Error('Invalid or duplicate public catalog entry');
     seen.add(r.name.toLowerCase());
   }
-  return data;
+  // Older R1-H2 catalogs used a 48-character namespace. Re-evaluate their eligibility
+  // locally under the current policy without trusting stale stored booleans.
+  return { ...data, repositories: data.repositories.map(r => ({
+    ...r, eligible: validSlug(r.name),
+    reason: validSlug(r.name) ? null : 'Unsupported Windows-safe GitPorch repository name',
+  })) };
 }
 
 async function existingNames(dataDir) {
@@ -90,10 +96,14 @@ async function existingNames(dataDir) {
 
 export async function planImport(catalog, dataDir = getDataDir()) {
   const { names } = await existingNames(dataDir);
+  assertLocalRepositoryCapacity(names.size);
+  const atCapacity = names.size >= MAX_LOCAL_REPOSITORIES;
   const repositories = catalog.repositories.map(r => ({ name: r.name,
-    status: !r.eligible ? 'UNSUPPORTED_NAME' : names.has((r.name + '.git').toLowerCase()) ? 'ALREADY_LOCAL' : 'READY_TO_IMPORT',
+    status: !r.eligible ? 'UNSUPPORTED_NAME' : names.has((r.name + '.git').toLowerCase()) ?
+      'ALREADY_LOCAL' : atCapacity ? 'AT_CAPACITY' : 'READY_TO_IMPORT',
   }));
   return { owner: catalog.owner, source: 'PUBLIC_GITHUB_CATALOG',
+    capacity: MAX_LOCAL_REPOSITORIES, localEntries: names.size,
     ready: repositories.filter(r => r.status === 'READY_TO_IMPORT').length, repositories,
     notice: 'This is an offline local comparison. No network requests, copies, pushes, or server exposure.' };
 }
@@ -105,7 +115,8 @@ export async function importMirrorFromSource(name, source, dataDir = getDataDir(
   const { root, names } = await existingNames(dataDir);
   const target = join(root, name + '.git');
   if (names.has((name + '.git').toLowerCase())) throw new Error('Repository already exists; import will never overwrite');
-  if (names.size >= 200) throw new Error('GitPorch 200-repository inventory cap reached; import refused');
+  assertLocalRepositoryCapacity(names.size);
+  if (names.size >= MAX_LOCAL_REPOSITORIES) throw new Error('GitPorch ' + MAX_LOCAL_REPOSITORIES + '-repository capacity reached; import refused');
   const lock = join(root, '.import-lock-' + name.toLowerCase());
   await mkdir(lock); // atomic reservation against concurrent HomeNode importers
   let stage;
@@ -122,6 +133,8 @@ export async function importMirrorFromSource(name, source, dataDir = getDataDir(
     await git(['--git-dir', clone, 'config', '--remove-section', 'remote.origin']);
     const beforePublish = await existingNames(dataDir);
     if (beforePublish.names.has((name + '.git').toLowerCase())) throw new Error('Destination appeared during verification; refusing overwrite');
+    assertLocalRepositoryCapacity(beforePublish.names.size);
+    if (beforePublish.names.size >= MAX_LOCAL_REPOSITORIES) throw new Error('Repository capacity filled during clone; import refused');
     await rename(clone, target);
     return { name, status: 'IMPORTED_VERIFIED', refs: refs.split('\n').filter(Boolean).length,
       localPath: target, synchronization: 'DISABLED' };

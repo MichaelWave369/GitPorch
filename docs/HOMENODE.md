@@ -18,7 +18,7 @@ npm run homenode -- backup PhiOS 'E:\PhiOSBackups'
 npm run homenode -- verify 'E:\PhiOSBackups\gitporch-PhiOS-<generated-id>'
 ~~~
 
-The repo name is an **already present local GitPorch repo**, not a GitHub URL. `backup` will refuse an empty Git repository with no refs. For multiple repositories, issue a command per repo: there is no automated GitHub account sweep in this release. `inventory` inherits the existing GitPorch 200-local-repo listing limit; it does not certify that all repos on GitHub are present.
+The repo name is an **already present local GitPorch repo**, not a GitHub URL. `backup` will refuse an empty Git repository with no refs. For multiple repositories, issue a command per repo: there is no automated GitHub account sweep in this release. `inventory` inherits the GitPorch 2,048-local-repo capacity; it does not certify that all repos on GitHub are present.
 
 For each successful backup, HomeNode creates a newly named directory containing:
 

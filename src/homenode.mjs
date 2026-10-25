@@ -4,6 +4,7 @@ import { lstat, mkdtemp, readFile, realpath, rename, rm, stat, writeFile } from 
 import { tmpdir } from 'node:os';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { git, getDataDir, listRepos, repoRoot, validSlug } from './git.mjs';
+import { MAX_LOCAL_REPOSITORIES } from './repository-policy.mjs';
 
 const SCHEMA = 'gitporch.homenode.snapshot.v1';
 const BUNDLE = 'repository.bundle';
@@ -36,7 +37,7 @@ export async function inventory(dataDir = getDataDir()) {
   const repositories = await listRepos(dataDir);
   return {
     mode: 'LOCAL_ONLY', count: repositories.length,
-    notice: 'GitPorch listRepos currently caps discovery at 200 local repositories; no GitHub inventory is implied.',
+    notice: 'GitPorch inventories up to ' + MAX_LOCAL_REPOSITORIES + ' supported local repositories without truncation; no GitHub inventory is implied.',
     repositories: repositories.map(r => ({ name: r.name, branches: r.branches, latest: r.latest })),
   };
 }

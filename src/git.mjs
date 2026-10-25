@@ -3,16 +3,12 @@ import { promisify } from 'node:util';
 import { mkdir, readdir, lstat } from 'node:fs/promises';
 import { resolve, join, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { MAX_LOCAL_REPOSITORIES, LOCAL_REPOSITORY_SCAN_CONCURRENCY, validLocalRepositoryName, assertLocalRepositoryCapacity } from './repository-policy.mjs';
 
 const exec = promisify(execFile);
 const here = fileURLToPath(new URL('..', import.meta.url));
 export const defaultDataDir = resolve(here, 'data');
-const MAX_REPOS = 200;
-
-export function validSlug(value) {
-  return typeof value === 'string' && value.length <= 48 && /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(value) &&
-    !value.endsWith('.') && !value.toLowerCase().endsWith('.git') && value !== '..';
-}
+export const validSlug = validLocalRepositoryName;
 
 export function getDataDir(value = process.env.GITPORCH_DATA_DIR) {
   return value ? resolve(value) : defaultDataDir;
@@ -21,7 +17,7 @@ export function getDataDir(value = process.env.GITPORCH_DATA_DIR) {
 export function repoRoot(dataDir) { return resolve(dataDir, 'repos'); }
 
 function repoPath(dataDir, name) {
-  if (!validSlug(name)) throw new Error('Invalid repo name (letters, numbers, dot, dash, underscore; max 48)');
+  if (!validSlug(name)) throw new Error('Invalid repo name (Windows-safe letters, numbers, dot, dash, underscore; max 100)');
   const root = repoRoot(dataDir);
   const path = resolve(root, `${name}.git`);
   const rel = relative(root, path);
@@ -54,6 +50,9 @@ export async function createRepo(dataDir, name) {
   if (existing.some((entry) => entry.toLowerCase() === `${name}.git`.toLowerCase())) {
     throw new Error('Repository already exists (names are case-insensitive)');
   }
+  if (existing.filter(entry => entry.toLowerCase().endsWith('.git')).length >= MAX_LOCAL_REPOSITORIES) {
+    throw new Error('GitPorch ' + MAX_LOCAL_REPOSITORIES + '-repository capacity reached; refusing create');
+  }
   // No shell, no user-provided flags, explicit path position, bare only.
   await git(['init', '--bare', '--initial-branch=main', '--', path]);
   return { name, path };
@@ -62,14 +61,32 @@ export async function createRepo(dataDir, name) {
 async function findBareRepos(dataDir) {
   const root = await ensureRepos(dataDir);
   const entries = await readdir(root, { withFileTypes: true });
-  return entries.filter((ent) => ent.isDirectory() && ent.name.endsWith('.git') && validSlug(ent.name.slice(0,-4)))
-    .sort((a, b) => a.name.localeCompare(b.name, 'en')).slice(0, MAX_REPOS)
-    .map((ent) => ({ name: ent.name.slice(0, -4), path: join(root, ent.name) }));
+  const candidates = entries.filter(ent => ent.isDirectory() && ent.name.toLowerCase().endsWith('.git'));
+  // Never silently drop unsupported repo directories: they may contain the only copy.
+  const unsupported = candidates.filter(ent => !validSlug(ent.name.slice(0, -4)));
+  if (unsupported.length) throw new Error('Unsupported local Git repository directory; inspect manually: ' +
+    unsupported[0].name);
+  assertLocalRepositoryCapacity(candidates.length);
+  const repos = candidates.sort((a, b) => a.name.localeCompare(b.name, 'en'));
+  return repos.map(ent => ({ name: ent.name.slice(0, -4), path: join(root, ent.name) }));
+}
+
+async function boundedMap(items, limit, fn) {
+  const values = new Array(items.length);
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(items.length, limit) }, async () => {
+    while (cursor < items.length) {
+      const index = cursor++;
+      values[index] = await fn(items[index]);
+    }
+  });
+  await Promise.all(workers);
+  return values;
 }
 
 export async function listRepos(dataDir) {
   const repos = await findBareRepos(dataDir);
-  return Promise.all(repos.map(async ({ name, path }) => {
+  return boundedMap(repos, LOCAL_REPOSITORY_SCAN_CONCURRENCY, async ({ name, path }) => {
     const [head, output] = await Promise.all([
       git(['--git-dir', path, 'symbolic-ref', '--quiet', '--short', 'HEAD']).catch(() => 'main'),
       git(['--git-dir', path, 'for-each-ref', '--sort=-committerdate',
@@ -84,7 +101,7 @@ export async function listRepos(dataDir) {
       cloneUrl: `git://127.0.0.1:${getGitPort()}/${encodeURIComponent(name)}.git`,
       localPushPath: path,
     };
-  }));
+  });
 }
 
 export async function readCommits(dataDir, name, limit = 12) {
