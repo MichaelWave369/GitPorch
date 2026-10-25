@@ -1,4 +1,4 @@
-import { createHash, timingSafeEqual } from 'node:crypto';
+import { X509Certificate, createHash, createPublicKey, timingSafeEqual } from 'node:crypto';
 import { lstat, readFile } from 'node:fs/promises';
 import { createServer } from 'node:https';
 import { isIP } from 'node:net';
@@ -44,7 +44,7 @@ async function checkedFile(path, maxBytes) {
   return readFile(path);
 }
 
-export async function loadGatewayCredentials(files) {
+export async function loadGatewayCredentials(files, boundIp = null) {
   const [cert, key, rawToken] = await Promise.all([
     checkedFile(files.certificate, 1024 * 1024),
     checkedFile(files.privateKey, 1024 * 1024),
@@ -56,6 +56,18 @@ export async function loadGatewayCredentials(files) {
   }
   if (files.privateKey === files.certificate || files.token === files.certificate || files.token === files.privateKey) {
     throw new Error('Certificate, key and token must have distinct file paths');
+  }
+  if (boundIp !== null) {
+    if (!validBindAddress(boundIp)) throw new Error('Invalid certificate binding IP');
+    const x509 = new X509Certificate(cert);
+    if (x509.checkIP(boundIp) !== boundIp) throw new Error('TLS certificate IP Subject Alternative Name does not match bind address');
+    const now = Date.now();
+    if (now < Date.parse(x509.validFrom) || now > Date.parse(x509.validTo))
+      throw new Error('TLS certificate expired or not yet valid');
+    const certPublic = x509.publicKey.export({ type: 'spki', format: 'der' });
+    const privatePublic = createPublicKey(key).export({ type: 'spki', format: 'der' });
+    if (certPublic.length !== privatePublic.length || !timingSafeEqual(certPublic, privatePublic))
+      throw new Error('TLS certificate/private key mismatch');
   }
   return { cert, key, token };
 }
@@ -126,7 +138,7 @@ export function makeGatewayHandler({ bind, port, token }) {
 }
 
 export async function startGateway({ bind, port, files } = parseGatewayConfig()) {
-  const { cert, key, token } = await loadGatewayCredentials(files);
+  const { cert, key, token } = await loadGatewayCredentials(files, bind);
   const handler = makeGatewayHandler({ bind, port, token });
   const server = createServer({ cert, key, minVersion: 'TLSv1.2', requestCert: false }, handler);
   server.requestTimeout = 10_000;
