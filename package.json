@@ -27,7 +27,8 @@
     "vault": "node src/vault-cli.mjs",
     "homenode": "node src/homenode-cli.mjs",
     "bridge": "node src/homenode-bridge-cli.mjs",
-    "gateway": "node src/homenode-gateway-cli.mjs"
+    "gateway": "node src/homenode-gateway-cli.mjs",
+    "companion": "node src/homenode-companion-cli.mjs"
   },
   "license": "MIT"
 }
