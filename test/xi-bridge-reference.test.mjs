@@ -6,6 +6,7 @@ test('GitPorch front porch preserves reviewed Xi engineering doorway',async()=>{
  const html=await read('index.html');
  assert.match(html,/href="\.\/xi-bridge-reference\.html"/);
  assert.match(html,/PUBLIC COLLABORATION · NO LIVE Xi GRANT/);
+ assert.match(html,/href="https:\/\/michaelwave369\.github\.io\/xi-vessel-bridge\/"/);
  assert.match(html,/Neither GitPorch nor Xi is granted runtime access/);
 });
 test('Xi reference links verified static Pages, evidence and canonical GitHub source',async()=>{
