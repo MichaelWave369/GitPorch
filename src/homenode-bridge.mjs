@@ -74,11 +74,16 @@ export async function loadCatalog(file) {
   }
   const seen = new Set();
   for (const r of data.repositories) {
-    if (!r || !safeName(r.name) || r.eligible !== validSlug(r.name) || seen.has(r.name.toLowerCase()))
-      throw new Error('Invalid, duplicate, or inconsistent catalog entry');
+    if (!r || !safeName(r.name) || typeof r.eligible !== 'boolean' || seen.has(r.name.toLowerCase()))
+      throw new Error('Invalid or duplicate public catalog entry');
     seen.add(r.name.toLowerCase());
   }
-  return data;
+  // Older R1-H2 catalogs used a 48-character namespace. Re-evaluate their eligibility
+  // locally under the current policy without trusting stale stored booleans.
+  return { ...data, repositories: data.repositories.map(r => ({
+    ...r, eligible: validSlug(r.name),
+    reason: validSlug(r.name) ? null : 'Unsupported Windows-safe GitPorch repository name',
+  })) };
 }
 
 async function existingNames(dataDir) {
