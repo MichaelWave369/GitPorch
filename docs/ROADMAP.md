@@ -22,7 +22,7 @@
 | R3 | Pull requests, branch protection, code review, issues, artifacts, actual-status badges | Planned |
 | R4 | Optional GitHub/GitLab mirroring and governed AI-agent adapters | Planned |
 | R1-H1 | **HomeNode**: local inventory and per-repo non-overwriting Git bundle snapshots with SHA-256 and verified mirror restore; no LAN/sync | Proposed PR |
-| R1-H2 | Cross-repo inventory and complete GitHub/LFS/metadata export planning, independently checked restore | Planned |
+| R1-H2 | **Public GitHub bridge**: paginated public catalog, offline import plan and one-at-a-time verified mirror import; no sync/private data | Proposed PR |
 | Pages | Public static demonstration with fictional history only | Merged PR #2 |
 
 **Non-negotiable invariants**

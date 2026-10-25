@@ -86,6 +86,20 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## ΦOS HomeNode R1-H2: public GitHub bridge
+
+An **opt-in public-only** GitHub catalog and verified one-repository mirror importer builds on R1-H1 snapshots:
+
+~~~powershell
+npm run bridge -- discover MichaelWave369 'D:\PhiOSCatalog' --i-approve-public-discovery
+npm run bridge -- plan 'D:\PhiOSCatalog\gitporch-public-MichaelWave369-<generated-id>.json'
+npm run bridge -- import 'D:\PhiOSCatalog\gitporch-public-MichaelWave369-<generated-id>.json' PhiOS --i-approve-github-import
+~~~
+
+The catalog directory must already exist. Import never replaces an existing local repository and disconnects the original GitHub remote after verifying the mirror. This does **not** download private repositories, Git LFS contents, issues, PRs, wikis, release assets, or account settings. It does not enable automatic sync, LAN exposure, or unattended downloads.
+
+Read [the bridge operator guide](docs/HOMENODE_BRIDGE.md) and verify an external snapshot before relying on offline recovery.
+
 ## PhiBots Clubhouse (local R0.3)
 
 The Clubhouse records **local contributor labels, proposals referencing actual Git commits, and operator review notes**. It does not authenticate human or bot identity, certify any test, run build scripts, or merge branches.
