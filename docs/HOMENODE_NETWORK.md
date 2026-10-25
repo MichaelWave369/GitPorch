@@ -49,7 +49,7 @@ npm run gateway -- preflight
 npm run gateway -- serve --i-accept-lan-read-only
 ~~~
 
-The gateway starts **only** from the last explicit command; `npm start` is unchanged. The preflight only checks local file readability, size, and token format. It does NOT verify certificate SAN, signer trust, expiration, ACL security or penetration testing. Stopping the foreground command stops the listener; no startup service is configured.
+The gateway starts **only** from the last explicit command; `npm start` is unchanged. The preflight checks local file readability, token format, certificate IP SAN, certificate validity period and matching private key. It does NOT establish trusted certificate issuance, ACL security, network safety or penetration-test readiness. Stopping the foreground command stops the listener; no startup service is configured.
 
 ## Trusted client probe
 
