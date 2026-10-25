@@ -20,13 +20,13 @@ The JSON includes names, archival/fork indicators, rough GitHub-reported repo si
 
 ## 2. Plan locally (no internet required)
 
-Use the real catalog path returned above. The name below is illustrative:
+Use the real catalog path returned above. The name below is illustrative. Older R1-H2 catalogs can be reused: their name eligibility is recalculated against the current 100-character policy when loaded:
 
 ~~~powershell
 npm run bridge -- plan 'D:\PhiOSCatalog\gitporch-public-MichaelWave369-<generated-id>.json'
 ~~~
 
-Every public catalog entry reports one of: `READY_TO_IMPORT`, `ALREADY_LOCAL`, or `UNSUPPORTED_NAME`. The plan is not proof that all your GitHub repos have been discovered or that all storage requirements are affordable. GitPorch now allows up to 2,048 supported local repositories; inventory refuses overflow rather than truncating. Check the destination machine's free disk space before importing large repositories.
+Every public catalog entry reports one of: `READY_TO_IMPORT`, `ALREADY_LOCAL`, `UNSUPPORTED_NAME`, or `AT_CAPACITY` if the local store is full. The plan is not proof that all your GitHub repos have been discovered or that all storage requirements are affordable. GitPorch now allows up to 2,048 supported local repositories; inventory refuses overflow rather than truncating. Check the destination machine's free disk space before importing large repositories.
 
 ## 3. Import one approved repository (internet required)
 
