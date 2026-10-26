@@ -1,5 +1,12 @@
 # The GitPorch
 
+## Code Brown · Human usability gauntlet (CB-001)
+
+**If Brown can’t figure it out, we haven’t finished building it.** Code Brown is a six-question, *human-observed* first-use review for the Φ ecosystem: understand the app in 5 seconds, find the main action, achieve a useful result in 30 seconds, navigate on the actual device, recover from an error, and say whether they would return. It tests the interface, **not the visitor’s intelligence**.
+
+Use the local-only [browser checklist](docs/code-brown.html) (also available from the public GitPorch showcase after Pages deploys); export a JSON report, then validate it with `node src/code-brown-cli.mjs path/to/report.json --require-pass`. [Protocol, claims and limitations](docs/CODE_BROWN.md). This does not confer an automatic usability certification or run a real human test for you.
+
+
 > **Pull up a chair. Push some code.**
 >
 > Your code. Your porch. Your rules.
