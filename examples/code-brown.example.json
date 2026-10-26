@@ -1,0 +1,37 @@
+{
+  "version": "code-brown/0.1",
+  "app": {
+    "name": "Example App (synthetic)",
+    "url": "https://example.org"
+  },
+  "session": {
+    "device": "Browser on TV or desktop",
+    "method": "unverified"
+  },
+  "checks": {
+    "understand": {
+      "status": "not-tested",
+      "evidence": ""
+    },
+    "find-action": {
+      "status": "not-tested",
+      "evidence": ""
+    },
+    "first-success": {
+      "status": "not-tested",
+      "evidence": ""
+    },
+    "device-controls": {
+      "status": "not-tested",
+      "evidence": ""
+    },
+    "error-recovery": {
+      "status": "not-tested",
+      "evidence": ""
+    },
+    "would-return": {
+      "status": "not-tested",
+      "evidence": ""
+    }
+  }
+}
