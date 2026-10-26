@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Code Brown · Human Usability Review</title>
+<style>
+:root{font-family:system-ui,sans-serif;color-scheme:dark;background:#101b19;color:#f3f8f6}
+*{box-sizing:border-box}body{margin:0;padding:2rem 1rem}.wrap{max-width:800px;margin:auto}
+h1{font-size:clamp(2rem,6vw,3.3rem);margin:.15em 0}p{line-height:1.55;color:#c7d5cf}
+.badge{color:#c0ebb5;text-transform:uppercase;letter-spacing:.12em;font-weight:700;font-size:.8rem}
+.card{border:1px solid #42564b;background:#182925;padding:1.15rem;margin:1rem 0;border-radius:14px}
+label{display:block;font-weight:700;margin:.4rem 0}input,select,textarea{background:#091713;color:#fff;border:1px solid #7a9586;border-radius:8px;padding:.75rem;width:100%;font:inherit}
+textarea{min-height:70px;resize:vertical}select{max-width:230px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}@media(max-width:600px){.grid{grid-template-columns:1fr}}
+button{padding:.85rem 1.2rem;border:0;border-radius:10px;background:#b5f08a;color:#112014;font-weight:800;font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #f6d57d;outline-offset:3px}
+#result{font-weight:700}a{color:#c0ebb5}.small{font-size:.9rem}
+</style>
+</head>
+<body><main class="wrap">
+<a href="./index.html">← GitPorch</a>
+<p class="badge">CB-001 · Φ Human QA</p>
+<h1>CODE BROWN</h1>
+<p><strong>“If Brown can't figure it out, we haven't finished building it.”</strong> Watch a first-time visitor use the app. Don't coach. Record what actually happened, then export a local review. Nobody is graded here except the design.</p>
+<form id="review">
+<div class="card"><h2>Session details</h2>
+<div class="grid"><div><label for="app">App name</label><input id="app" required placeholder="e.g. REELCommons"></div><div><label for="url">Live app URL</label><input id="url" type="url" required placeholder="https://example.org"></div><div><label for="device">Device + browser</label><input id="device" required placeholder="Xbox / Edge"></div><div><label for="method">Review method</label><select id="method"><option value="unverified">Not yet observed</option><option value="human">I watched a real person use it</option></select></div></div>
+<p class="small">Use a pseudonym if documenting a tester. Do not put private or identifying information in the exported notes.</p>
+</div>
+<div id="checks"></div>
+<button type="submit">Download Code Brown report</button>
+<p id="result" role="status" aria-live="polite">No review submitted.</p>
+<p class="small">This page works offline after loading, sends no data to a server and does not independently verify claims. See <a href="./CODE_BROWN.md">the protocol</a>.</p>
+</form></main>
+<script>
+const checks=[
+ ['understand','Understand in 5 seconds','Ask what the app does at first glance.'],
+ ['find-action','Find the main action','Do not tell the visitor where to click.'],
+ ['first-success','Do something useful in 30 seconds','Record the actual outcome, not just a click.'],
+ ['device-controls','Navigate with device controls','Try keyboard, touchscreen or gamepad as appropriate.'],
+ ['error-recovery','Recover from an error','Can they find a way forward without rescue?'],
+ ['would-return','Would they use it again?','Ask directly. Do not guess from their smile.']
+];
+const host=document.getElementById('checks');
+for(const [id,title,hint] of checks){
+ const field=document.createElement('fieldset');field.className='card';const legend=document.createElement('legend');legend.textContent=title;legend.style.fontWeight='bold';field.append(legend);
+ const p=document.createElement('p');p.textContent=hint;field.append(p);
+ const l1=document.createElement('label');l1.htmlFor='s-'+id;l1.textContent='Observed result';field.append(l1);
+ const s=document.createElement('select');s.id='s-'+id;
+ for(const [value,text] of [['not-tested','Not tested'],['pass','Pass'],['fail','Fail']]){const o=document.createElement('option');o.value=value;o.textContent=text;s.append(o);}field.append(s);
+ const l2=document.createElement('label');l2.htmlFor='e-'+id;l2.textContent='What happened? (required for pass/fail)';field.append(l2);
+ const note=document.createElement('textarea');note.id='e-'+id;field.append(note);host.append(field);
+}
+document.getElementById('review').addEventListener('submit',event=>{
+ event.preventDefault();
+ const status=document.getElementById('result');
+ const observations=Object.fromEntries(checks.map(([id])=>[id,{status:document.getElementById('s-'+id).value,evidence:document.getElementById('e-'+id).value.trim()}]));
+ const missing=checks.filter(([id])=>observations[id].status!=='not-tested'&&!observations[id].evidence);
+ if(missing.length){status.textContent='Add observations for all pass/fail selections first.';return;}
+ let url;
+ try{url=new URL(document.getElementById('url').value);if(!['http:','https:'].includes(url.protocol))throw Error();}catch{status.textContent='Use a valid HTTP(S) app URL.';return;}
+ const report={version:'code-brown/0.1',app:{name:document.getElementById('app').value.trim(),url:url.href},session:{device:document.getElementById('device').value.trim(),method:document.getElementById('method').value},checks:observations};
+ const values=Object.values(observations);
+ const outcome=values.some(x=>x.status==='fail')?'FAIL':values.every(x=>x.status==='pass')&&report.session.method==='human'?'PASS':'PENDING';
+ const blob=new Blob([JSON.stringify(report,null,2)+'\n'],{type:'application/json'});const a=document.createElement('a');const link=URL.createObjectURL(blob);
+ a.href=link;a.download='code-brown-review.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(link),500);
+ status.textContent='Report exported. Outcome: '+outcome+' (self-reported; not independently verified).';
+});
+</script>
+</body></html>
