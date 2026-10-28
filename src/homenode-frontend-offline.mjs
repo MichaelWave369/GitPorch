@@ -24,6 +24,7 @@ const MIME = new Map([
   ['.wasm', 'application/wasm'], ['.txt', 'text/plain; charset=utf-8'],
   ['.mp3', 'audio/mpeg'], ['.ogg', 'audio/ogg'], ['.mp4', 'video/mp4'],
   ['.webm', 'video/webm'], ['.pdf', 'application/pdf'],
+  ['.map', 'application/json; charset=utf-8'], // Vite sourcemaps can be hashed but are never served
 ]);
 const TEXT_SCAN = new Set(['.html', '.css']);
 const CSP = [
@@ -279,7 +280,7 @@ export async function startOfflineFrontendServer(
     }
     const path = requestRelative(req.url);
     const expected = path && map.get(path);
-    if (!expected) return sendError(res, 404);
+    if (!expected || ext(path) === '.map') return sendError(res, 404);
     try {
       const full = join(root, ...path.split('/'));
       const st = await lstat(full);
