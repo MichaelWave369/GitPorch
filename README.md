@@ -93,6 +93,17 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.6: offline external asset dependency gap audit
+
+A Git bundle preserves reachable Git objects, **not** the contents referenced by Git LFS pointers, submodule gitlinks, or GitHub release downloads. The first R0.6 tool inspects up to five explicitly named public local bare mirrors and checks a bounded set of branch-tip trees for Git LFS pointers, tracked `.gitattributes` LFS declarations, and submodule gitlink references. It never downloads or executes them.
+
+```powershell
+# Use your exact saved public catalog file; local mirrors must already be imported.
+npm run homenode -- asset-gaps "D:\PhiOSCatalog\<actual-catalog>.json" "PhiOS,GitPorch,PhiARK"
+```
+
+Each finding is deliberately **unverified as a complete external backup**. GitHub release contents remain UNKNOWN because they are not part of a normal Git repo. The tool uses no network and writes nothing to mirrors or bundles. It does not claim full-history scanning, saved LFS data, submodule target backups or offline PhiOS readiness. [R0.6 operator guide](docs/PHIOS_R06_EXTERNAL_ASSET_GAPS.md).
+
 ## PhiOS R0.5: public source backup coverage ledger
 
 Use an existing public GitPorch catalog and existing HomeNode backup directory to report which local source mirrors are covered by verified, restorable Git bundles:
