@@ -44,7 +44,10 @@
     "lfs:fetch": "node src/homenode-cli.mjs lfs-fetch",
     "lfs:manifest": "node src/homenode-cli.mjs lfs-manifest",
     "submodule:ledger": "node src/homenode-cli.mjs submodule-ledger",
-    "release:inventory": "node src/homenode-cli.mjs release-inventory"
+    "release:inventory": "node src/homenode-cli.mjs release-inventory",
+    "release:archive-plan": "node src/homenode-cli.mjs release-archive-plan",
+    "release:archive": "node src/homenode-cli.mjs release-archive",
+    "release:archive-verify": "node src/homenode-cli.mjs release-archive-verify"
   },
   "license": "MIT"
 }

@@ -93,6 +93,18 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.12: approved single-asset GitHub Release preservation
+
+R0.12 extends the R0.11 published-asset census to **actual SHA-256 verified byte archival** for one selected public GitHub Release asset. First save the output of the explicitly approved R0.11 `release-inventory` command as a local JSON file. Then run an **offline, read-only preview**, review the exact asset ID, release ID, published SHA-256, size, archive root and plan fingerprint, and separately approve a **single** capped network download:
+
+```powershell
+npm run homenode -- release-archive-plan "D:\PhiOSCatalog\<catalog>.json" "D:\PhiOSCatalog\<saved-release-inventory>.json" "PhiOS" "1234567" "E:\PhiOSArchive"
+npm run homenode -- release-archive "D:\PhiOSCatalog\<catalog>.json" "D:\PhiOSCatalog\<saved-release-inventory>.json" "PhiOS" "1234567" "E:\PhiOSArchive" "<planSha256>" --i-approve-release-download
+npm run homenode -- release-archive-verify "D:\PhiOSCatalog\<catalog>.json" "D:\PhiOSCatalog\<saved-release-inventory>.json" "PhiOS" "1234567" "E:\PhiOSArchive"
+```
+
+The download step **rechecks current GitHub release metadata** before requesting any attachment bytes, refuses releases without a published SHA-256, caps each file at 64 MiB, rejects unapproved redirects, checks true streamed bytes and SHA-256, and atomically preserves the verified object under a content-addressed `releases/sha256/` store. Nothing is unpacked or executed. A physically separate restore, publisher signature verification, completeness of all Releases and actual offline PhiOS launch are **not** implied. [Full R0.12 guide](docs/PHIOS_R12_RELEASE_ASSET_ARCHIVE.md).
+
 ## PhiOS R0.11: bounded public GitHub Release asset inventory
 
 Unlike Git commits or Git LFS pointers, **GitHub Release attachment files are not preserved by Git bundles**. The R0.11 `release-inventory` command performs an explicit **online, metadata-only** inspection of one public-cataloged repository. It lists published public Releases and their downloadable asset IDs, names, byte sizes, and SHA-256 digest claims where GitHub provides one.
