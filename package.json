@@ -31,7 +31,9 @@
     "companion": "node src/homenode-companion-cli.mjs",
     "code-brown": "node src/code-brown-cli.mjs",
     "smergeon": "node src/smergeon-intake-cli.mjs",
-    "audit:public-mirrors": "node src/homenode-bridge-cli.mjs audit"
+    "audit:public-mirrors": "node src/homenode-bridge-cli.mjs audit",
+    "batch:plan": "node src/homenode-bridge-cli.mjs batch-plan",
+    "batch:import": "node src/homenode-bridge-cli.mjs batch-import"
   },
   "license": "MIT"
 }
