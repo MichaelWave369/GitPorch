@@ -48,8 +48,11 @@ async function initMirror(f, name = 'PhiOS', options = {}) {
   }
   await git(['-C', work, '-c', 'user.name=AssetFixture',
     '-c', 'user.email=assets@example.invalid',
-    'commit', '-m', 'initial'], { timeout: 10_000 });
-  await git(['-C', work, 'push', bare, 'main'], { timeout: 10_000 });
+    'commit', '--allow-empty', '-m', 'initial'], { timeout: 10_000 });
+  // Fake LFS pointers are intentionally not backed by payloads. Prevent
+  // host-installed Git LFS pre-push hooks from making a network call in CI.
+  await git(['-C', work, '-c', 'core.hooksPath=' + join(f.root, 'nonexistent-test-hooks'),
+    'push', bare, 'main'], { timeout: 10_000 });
   return { work, bare, store };
 }
 
@@ -128,7 +131,8 @@ test('eight-distinct-branch-tip limit explicitly marks incomplete, never green',
       '-c', 'user.email=assets@example.invalid', 'commit', '--allow-empty', '-m', 'branch tip ' + i]);
     await git(['-C', source.work, 'branch', 'extra-' + i]);
   }
-  await git(['-C', source.work, 'push', source.bare, '--all']);
+  await git(['-C', source.work, '-c', 'core.hooksPath=' + join(f.root, 'nonexistent-test-hooks'),
+    'push', source.bare, '--all']);
   const report = await auditPublicExternalAssetGaps(catalog('PhiOS'), 'PhiOS', f.data);
   const row = report.repositories[0];
   assert.equal(row.headCount, 10);
