@@ -39,6 +39,12 @@ git --git-dir='D:\Recovered\PhiOS.git' fsck --full --no-reflogs
 
 Do not restore over the only live copy. Compare branches and tags before manually reconnecting a recovered repo to GitPorch. Private keys, credentials and runtime state require separately protected backups.
 
+## PhiOS R0.4 automation for the manual recovery drill
+
+A new explicitly approved CLI `npm run homenode -- drill <snapshot-dir> <existing-restore-parent> --i-confirm-local-restore` uses a restricted, file-only Git environment to restore the verified Git bundle to a newly named bare repository and compare its refs, object graph, and bundle digest. It never overwrites a live repository and does not retain the backup bundle as an origin remote.
+
+No remotely accessible service or automatic synchronization is added. The returned receipt is unsigned and does **not** independently prove backup-disk separateness, WAN disconnection, GitHub remote parity, submodule/LFS presence, or PhiOS hardware boot. See [the operator guide](PHIOS_R04_OFFLINE_RESTORE_DRILL.md).
+
 ## What this DOES NOT protect
 
 - Git LFS blobs (pointers are in Git, content is managed separately), GitHub issues/PRs/comments, release files, Actions artifacts, GitHub Pages configuration, submodule target repositories or wiki repos.
