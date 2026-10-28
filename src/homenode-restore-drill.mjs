@@ -52,7 +52,7 @@ async function sha256File(path) {
   for await (const chunk of createReadStream(path)) h.update(chunk);
   return h.digest('hex');
 }
-function offlineEnv() {
+export function offlineRestoreGitEnv() {
   const env = Object.fromEntries(SAFE_ENV.filter(k => process.env[k] !== undefined)
     .map(k => [k, process.env[k]]));
   return {
@@ -64,7 +64,7 @@ function offlineEnv() {
 }
 async function gitOffline(args) {
   const { stdout } = await exec('git', args, {
-    env: offlineEnv(), timeout: MAX_DURATION_MS, windowsHide: true,
+    env: offlineRestoreGitEnv(), timeout: MAX_DURATION_MS, windowsHide: true,
     maxBuffer: 4 * 1024 * 1024,
   });
   return stdout.trimEnd();
