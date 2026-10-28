@@ -13,6 +13,7 @@ import { planReleaseAssetArchive, acquireReleaseAsset, verifyReleaseAssetArchive
 import { offlineRecoveryReadiness } from './homenode-offline-readiness.mjs';
 import { planPortableRecoveryKit, verifyPortableRecoveryKit } from './homenode-portable-kit.mjs';
 import { composeOfflineFieldEvidence } from './homenode-field-evidence.mjs';
+import { preflightRecoveredRuntime } from './homenode-runtime-preflight.mjs';
 
 const help = [
   'GitPorch HomeNode R1-H1 (single-operator, localhost only)',
@@ -37,6 +38,7 @@ const help = [
   '  node src/homenode-cli.mjs portable-kit-plan <catalog> <public-repo> <existing-kit-root>  (offline, read-only)',
   '  node src/homenode-cli.mjs portable-kit-verify <saved-kit-manifest.json> <copied-kit-root>  (offline, read-only)',
   '  node src/homenode-cli.mjs field-evidence <saved-kit-manifest> <copied-kit-root> <restored-bare-repo> <operator-observations.json|none>  (offline, read-only)',
+  '  node src/homenode-cli.mjs runtime-preflight <saved-kit-manifest> <copied-kit-root> <restored-bare-repo> <branch>  (offline, no code execution)',
   'Network only with explicit public release lookup, approved LFS fetch, or approved release-asset download. No unattended sync or system installation.',
 ].join('\n');
 
@@ -45,6 +47,8 @@ async function main() {
   if (command === 'inventory' && !args.length) return console.log(JSON.stringify(await inventory(), null, 2));
   if (command === 'backup' && args.length === 2) return console.log(JSON.stringify(await backupRepo(args[0], args[1]), null, 2));
   if (command === 'verify' && args.length === 1) return console.log(JSON.stringify(await verifyBackup(args[0]), null, 2));
+  if (command === 'runtime-preflight' && args.length === 4)
+    return console.log(JSON.stringify(await preflightRecoveredRuntime(...args), null, 2));
   if (command === 'field-evidence' && args.length === 4)
     return console.log(JSON.stringify(await composeOfflineFieldEvidence(...args), null, 2));
   if (command === 'portable-kit-plan' && args.length === 3)
