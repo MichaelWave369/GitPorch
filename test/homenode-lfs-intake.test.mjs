@@ -30,7 +30,7 @@ async function fixture(fn) {
   } finally { await rm(root, { recursive: true, force: true }); }
 }
 async function createLfsFixture(f, opts = {}) {
-  const name = 'PhiOS';
+  const name = opts.name ?? 'PhiOS';
   const bare = join(f.data, 'repos', name + '.git');
   const work = join(f.root, 'work-' + name);
   await mkdir(dirname(bare), { recursive: true });
@@ -130,9 +130,8 @@ test('private/foreign/unrecognized repo and unsafe path are rejected', async () 
 test('oversized pointer is denied before source reading and malicious local store symlink refused', async t => fixture(async f => {
   const s = await createLfsFixture(f, { declaredSize: 70 * 1024 * 1024 });
   await assert.rejects(planLocalLfsIntake(...args(f, s)), /64MiB/);
-  // Make another valid Git mirror fixture for the symlink attack check.
-  await rm(f.data, { recursive: true, force: true });
-  const fresh = await createLfsFixture(f);
+  // Make a separate fresh valid Git mirror fixture for the symlink attack.
+  const fresh = await createLfsFixture(f, { name: 'GitPorch' });
   const outside = join(f.root, 'outside');
   await mkdir(outside);
   try { await symlink(outside, join(f.assets, 'objects'), 'dir'); }
