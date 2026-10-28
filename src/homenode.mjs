@@ -4,6 +4,7 @@ import { lstat, mkdtemp, readFile, realpath, rename, rm, stat, writeFile } from 
 import { tmpdir } from 'node:os';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { git, getDataDir, listRepos, repoRoot, validSlug } from './git.mjs';
+import { offlineRestoreGitEnv } from './homenode-restore-drill.mjs';
 import { MAX_LOCAL_REPOSITORIES } from './repository-policy.mjs';
 
 const SCHEMA = 'gitporch.homenode.snapshot.v1';
@@ -29,8 +30,8 @@ function parseRefs(output) {
   }).sort((a, b) => a.name.localeCompare(b.name, 'en'));
 }
 
-async function refsFor(barePath) {
-  return parseRefs(await git(['--git-dir', barePath, 'for-each-ref', '--format=%(refname)%09%(objectname)'], { timeout: TIMEOUT }));
+async function refsFor(barePath, env) {
+  return parseRefs(await git(['--git-dir', barePath, 'for-each-ref', '--format=%(refname)%09%(objectname)'], { timeout: TIMEOUT, env }));
 }
 
 export async function inventory(dataDir = getDataDir()) {
@@ -98,12 +99,13 @@ export async function verifyBackup(directory) {
     throw new Error('Invalid snapshot manifest');
   if ((await stat(bundlePath)).size !== m.bytes || (await digest(bundlePath)) !== m.sha256)
     throw new Error('Snapshot bundle does not match its recorded checksum/size');
+  const offlineEnv = offlineRestoreGitEnv();
   const scratch = await mkdtemp(join(tmpdir(), 'gitporch-verify-'));
   try {
     const restored = join(scratch, 'restored.git');
-    await git(['clone', '--mirror', '--', bundlePath, restored], { timeout: TIMEOUT });
-    await git(['--git-dir', restored, 'fsck', '--full', '--no-reflogs'], { timeout: TIMEOUT });
-    const actual = await refsFor(restored);
+    await git(['clone', '--mirror', '--', bundlePath, restored], { timeout: TIMEOUT, env: offlineEnv });
+    await git(['--git-dir', restored, 'fsck', '--full', '--no-reflogs'], { timeout: TIMEOUT, env: offlineEnv });
+    const actual = await refsFor(restored, offlineEnv);
     if (JSON.stringify(actual) !== JSON.stringify([...m.refs].sort((a, b) => a.name.localeCompare(b.name, 'en'))))
       throw new Error('Restored refs differ from the recorded snapshot');
   } finally {
