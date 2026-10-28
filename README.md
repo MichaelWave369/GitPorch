@@ -93,6 +93,20 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.17: operator-approved offline PhiOS frontend byte check and localhost preview
+
+R0.17 explicitly separates **source recovery** from **a built static frontend**. After you produce a reviewed PhiOS Vite `site/dist` build and copy it to a standalone folder (not automatically from GitPorch), the new `frontend-scan` command inventories up to 512 files with SHA-256, detects missing *direct* HTML/CSS static asset references, and fails on remote HTML/CSS resource URLs. Save its **unsigned** JSON output outside the build. `frontend-verify` then checks an operator-copied `dist` directory's exact filenames, sizes and hashes without any network traffic.
+
+```powershell
+npm run homenode -- frontend-scan "E:\PhiOSBuilt\dist" > "D:\PhiOSEvidence\frontend-dist-reference.json"
+npm run homenode -- frontend-verify "D:\PhiOSEvidence\frontend-dist-reference.json" "F:\CopiedPhiOSDist"
+npm run homenode -- frontend-serve "D:\PhiOSEvidence\frontend-dist-reference.json" "F:\CopiedPhiOSDist" 8765 --i-approve-loopback-preview
+```
+
+The opt-in preview binds **127.0.0.1:8765** only and serves under `/PhiOS/` with a local-only Content Security Policy blocking external resource and fetch origins. It rechecks every requested file's hash, never opens the browser automatically, and stops with Ctrl-C. In the operator's browser, manually visit `http://127.0.0.1:8765/PhiOS/`. Even an HTTP 200 is **not** a measured rendered page, app navigation, offline external-network disconnection, or a booted Linux PhiOS image.
+
+This tool neither invokes `npm` to build nor imports arbitrary binaries. Static HTML/CSS references are inspected, but dynamic JavaScript imports and runtime fetches remain **unverified**. [R0.17 guide](docs/PHIOS_R17_OFFLINE_FRONTEND_PREVIEW.md).
+
 ## PhiOS R0.16: recovered-source offline launch prerequisite preflight
 
 **A recovered Git repository is not automatically a running application.** R0.16 inspects one validated, copied and independently restored public repository's selected branch without running its code. It composes the R0.15 copied-kit and recovered-Git verification first, then checks tracked HTML/JS package entrypoints, build scripts, dependency lockfile presence, Python dependency manifests and Linux ISO build/release sources.

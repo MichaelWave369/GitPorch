@@ -14,6 +14,7 @@ import { offlineRecoveryReadiness } from './homenode-offline-readiness.mjs';
 import { planPortableRecoveryKit, verifyPortableRecoveryKit } from './homenode-portable-kit.mjs';
 import { composeOfflineFieldEvidence } from './homenode-field-evidence.mjs';
 import { preflightRecoveredRuntime } from './homenode-runtime-preflight.mjs';
+import { scanOfflineFrontend, verifyOfflineFrontend, startOfflineFrontendServer } from './homenode-frontend-offline.mjs';
 
 const help = [
   'GitPorch HomeNode R1-H1 (single-operator, localhost only)',
@@ -39,7 +40,10 @@ const help = [
   '  node src/homenode-cli.mjs portable-kit-verify <saved-kit-manifest.json> <copied-kit-root>  (offline, read-only)',
   '  node src/homenode-cli.mjs field-evidence <saved-kit-manifest> <copied-kit-root> <restored-bare-repo> <operator-observations.json|none>  (offline, read-only)',
   '  node src/homenode-cli.mjs runtime-preflight <saved-kit-manifest> <copied-kit-root> <restored-bare-repo> <branch>  (offline, no code execution)',
-  'Network only with explicit public release lookup, approved LFS fetch, or approved release-asset download. No unattended sync or system installation.',
+  '  node src/homenode-cli.mjs frontend-scan <absolute-built-dist-root>  (offline SHA256/static-reference manifest)',
+  '  node src/homenode-cli.mjs frontend-verify <saved-dist-manifest.json> <absolute-copied-dist-root>  (offline readback)',
+  '  node src/homenode-cli.mjs frontend-serve <saved-dist-manifest.json> <absolute-copied-dist-root> <port> --i-approve-loopback-preview  (explicit 127.0.0.1 only)',
+  'Remote network only with explicit public release lookup, approved LFS fetch, or approved release-asset download. Frontend preview binds 127.0.0.1 only after consent. No unattended sync/install.',
 ].join('\n');
 
 async function main() {
@@ -47,6 +51,17 @@ async function main() {
   if (command === 'inventory' && !args.length) return console.log(JSON.stringify(await inventory(), null, 2));
   if (command === 'backup' && args.length === 2) return console.log(JSON.stringify(await backupRepo(args[0], args[1]), null, 2));
   if (command === 'verify' && args.length === 1) return console.log(JSON.stringify(await verifyBackup(args[0]), null, 2));
+  if (command === 'frontend-scan' && args.length === 1)
+    return console.log(JSON.stringify(await scanOfflineFrontend(args[0]), null, 2));
+  if (command === 'frontend-verify' && args.length === 2)
+    return console.log(JSON.stringify(await verifyOfflineFrontend(args[0], args[1]), null, 2));
+  if (command === 'frontend-serve' && args.length === 4 && args[3] === '--i-approve-loopback-preview') {
+    if (!/^[1-9]\d{3,4}$/.test(args[2])) throw new Error('Explicit preview port must be 1024..65535');
+    const preview = await startOfflineFrontendServer(args[0], args[1], Number(args[2]));
+    console.log(JSON.stringify({ ...preview, server: undefined }, null, 2));
+    console.error('[HomeNode] Local preview running. Manually open ' + preview.url + ' in your browser. Ctrl-C stops it. Not a browser or offline WAN certification.');
+    return;
+  }
   if (command === 'runtime-preflight' && args.length === 4)
     return console.log(JSON.stringify(await preflightRecoveredRuntime(...args), null, 2));
   if (command === 'field-evidence' && args.length === 4)
