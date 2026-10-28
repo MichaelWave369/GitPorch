@@ -52,7 +52,10 @@
     "portable:plan": "node src/homenode-cli.mjs portable-kit-plan",
     "portable:verify": "node src/homenode-cli.mjs portable-kit-verify",
     "field:evidence": "node src/homenode-cli.mjs field-evidence",
-    "runtime:preflight": "node src/homenode-cli.mjs runtime-preflight"
+    "runtime:preflight": "node src/homenode-cli.mjs runtime-preflight",
+    "frontend:scan": "node src/homenode-cli.mjs frontend-scan",
+    "frontend:verify": "node src/homenode-cli.mjs frontend-verify",
+    "frontend:serve": "node src/homenode-cli.mjs frontend-serve"
   },
   "license": "MIT"
 }
