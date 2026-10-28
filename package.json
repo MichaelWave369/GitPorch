@@ -36,7 +36,10 @@
     "batch:import": "node src/homenode-bridge-cli.mjs batch-import",
     "restore:drill": "node src/homenode-cli.mjs drill",
     "backup:coverage": "node src/homenode-cli.mjs coverage",
-    "assets:gaps": "node src/homenode-cli.mjs asset-gaps"
+    "assets:gaps": "node src/homenode-cli.mjs asset-gaps",
+    "lfs:plan": "node src/homenode-cli.mjs lfs-plan",
+    "lfs:intake": "node src/homenode-cli.mjs lfs-intake",
+    "lfs:verify": "node src/homenode-cli.mjs lfs-verify"
   },
   "license": "MIT"
 }
