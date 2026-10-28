@@ -119,6 +119,19 @@ npm run bridge -- audit 'D:\\PhiOSCatalog\\gitporch-public-MichaelWave369-<gener
 
 It checks local bare Git object structure and records a digest of refs for each present, supported source; missing repos stay NOT_LOCAL. This **does not** clone, back up, restore, fetch, sync, inspect private GitHub repositories, or prove the local refs match GitHub. It grants no offline readiness, mirroring completion or publication authority. [R0.2 operator guide](docs/PHIOS_R02_PUBLIC_MIRROR_AUDIT.md).
 
+## PhiOS R0.3: five-at-a-time approved public mirror batches
+
+This pilot imports **only 1–5 explicitly named public repositories per batch**. The preview is offline and doesn't write; the subsequent import requires a matching plan hash and operator approval. The importer reuses R1-H2's staged, non-overwriting verified Git clone, one repository at a time, and stops on the first failure.
+
+```powershell
+# Replace with the real absolute public catalog filename returned by "bridge discover":
+npm run bridge -- batch-plan "D:\\PhiOSCatalog\\public-catalog.json" "PhiOS,GitPorch,PhiARK"
+# Inspect the returned planSha256, then explicitly approve that exact plan:
+npm run bridge -- batch-import "D:\\PhiOSCatalog\\public-catalog.json" "PhiOS,GitPorch,PhiARK" "<the-64-hex-planSha256>" --i-approve-public-batch-import
+```
+
+The batch is **not** a backup, an automatic importer of the whole account, a private-repository migration or a background sync. Always use the R0.2 read-only audit before and after and take independently verified external backups. See [R0.3 operator guide](docs/PHIOS_R03_PUBLIC_BATCH_IMPORT.md).
+
 ## HomeNode R1-H3: scaling the local Git repository namespace
 
 The HomeNode capacity policy now supports **up to 2,048 supported local repositories** and GitPorch names **up to 100 characters** (excluding Windows reserved device basenames and unsafe filename patterns). Inventory no longer silently truncates at 200. Repository scans use a maximum of eight simultaneous Git workers rather than spawning subprocesses for every repository at once.
