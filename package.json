@@ -35,7 +35,8 @@
     "batch:plan": "node src/homenode-bridge-cli.mjs batch-plan",
     "batch:import": "node src/homenode-bridge-cli.mjs batch-import",
     "restore:drill": "node src/homenode-cli.mjs drill",
-    "backup:coverage": "node src/homenode-cli.mjs coverage"
+    "backup:coverage": "node src/homenode-cli.mjs coverage",
+    "assets:gaps": "node src/homenode-cli.mjs asset-gaps"
   },
   "license": "MIT"
 }
