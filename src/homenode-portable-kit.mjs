@@ -191,9 +191,6 @@ export async function planPortableRecoveryKit(catalog, repository, kitRoot) {
     scope: 'SELECTED_EXPLICIT_PORTABLE_KIT_CONTENTS_ONLY',
     bundleSha256: checked.bundleSha256, summary: checked.summary,
     files: checked.files,
-  };
-  return {
-    ...body, manifestSha256: digest(body),
     status: 'KIT_FILE_BYTES_AND_GIT_BUNDLE_VERIFIED_ONLY',
     networkUsed: false, persistentFilesWritten: false,
     // Keep all assertions false until the operator performs the field exercise.
@@ -201,6 +198,7 @@ export async function planPortableRecoveryKit(catalog, repository, kitRoot) {
       actualPhiOSComponentLaunched: false, completeEcosystemRecovered: false },
     notice: 'This is an unsigned local content inventory; source, full history, external asset coverage, physical media independence and PhiOS boot are NOT certified. Keep the manifest outside the kit root.',
   };
+  return { ...body, manifestSha256: digest(body) };
 }
 /**
  * Recompute the original manifest from its field subset; presentation fields do
