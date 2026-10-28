@@ -93,6 +93,16 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.11: bounded public GitHub Release asset inventory
+
+Unlike Git commits or Git LFS pointers, **GitHub Release attachment files are not preserved by Git bundles**. The R0.11 `release-inventory` command performs an explicit **online, metadata-only** inspection of one public-cataloged repository. It lists published public Releases and their downloadable asset IDs, names, byte sizes, and SHA-256 digest claims where GitHub provides one.
+
+```powershell
+npm run homenode -- release-inventory "D:\PhiOSCatalog\<actual-catalog>.json" "PhiOS" --i-approve-public-release-lookup
+```
+
+The command constructs only fixed GitHub REST API URLs, rejects redirects and incomplete oversized pages, and never follows asset download links. At most **20 published releases** and **100 attachments per release** (200 overall) are accepted. Output is a deterministic unsigned JSON evidence manifest; **none of the release bytes are downloaded or verified**. A missing SHA-256 digest is explicitly unverified, and no-result status is not interpreted as permanent absence of releases. Next stage requires a separate approved byte archival flow. [R0.11 operator guide](docs/PHIOS_R11_PUBLIC_RELEASE_INVENTORY.md).
+
 ## PhiOS R0.10: offline submodule commit recovery ledger
 
 Normal Git bundles preserve submodule **gitlink commit identifiers**, not the external repositories they reference. The new `submodule-ledger` reads the pinned parent branch-tip tree and a bounded local `.gitmodules` file without contacting its URLs. It checks only exact, public-cataloged `github.com/MichaelWave369/<repo>` submodule targets and asks whether their **referenced commit** is present and reachable from refs in a separately fsck-verified local GitPorch mirror.
