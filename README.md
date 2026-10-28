@@ -93,6 +93,18 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.15: offline field evidence with honest human/test boundaries
+
+After R0.14 verifies a copied kit, R0.15 rechecks the kit and an **actual separately restored bare Git repository**. It performs restricted local Git fsck, matches **every restored ref and commit OID** to the copied snapshot, and rejects external alternates, remote configurations and unsafe paths. An optional small operator observation JSON records what a human saw during the field test, but its WAN, media independence and component launch claims are **explicitly unsigned and unverified**. The report never claims full PhiOS offline readiness.
+
+```powershell
+npm run homenode -- field-evidence "D:\PhiOSEvidence\portable-kit-reference.json" "F:\CopiedPhiOSKit" "D:\PhiOSDisposableRestore\gitporch-restored-PhiOS-<generated-id>.git" none
+```
+
+Use the exact restored bare repository directory returned by the existing R0.4 `drill` receipt. To add an optional operator observation file, replace literal `none` with the absolute JSON path described in [R0.15 operator guide](docs/PHIOS_R15_FIELD_EVIDENCE.md). The command has no outbound network, no automatic copy/restore, no software launch, and no permanent file writes. Git verification uses temporary local clones that are deleted by the existing verifier.
+
+Even if a human reports success offline, **independent-device identity, actual WAN disconnection and component execution remain unmeasured by this software**. Keep those as separate, externally witnessed field evidence.
+
 ## PhiOS R0.14: portable offline recovery kit readback
 
 Git bundle backups, Git LFS bytes, and Release assets become much more useful when **a copied kit can be verified without the original machine or the internet**. R0.14 provides two read-only commands: `portable-kit-plan` inventories an explicitly assembled source kit, independently clones/fsck-verifies its included Git bundle, checks every included content-addressed LFS/Release file's name against its SHA-256 bytes, and prints a repeatable unsigned manifest to stdout. `portable-kit-verify` checks that an operator-copied kit has **the exact same files, sizes and hashes** and re-verifies its Git bundle.
