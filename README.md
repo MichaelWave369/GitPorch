@@ -93,6 +93,19 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.14: portable offline recovery kit readback
+
+Git bundle backups, Git LFS bytes, and Release assets become much more useful when **a copied kit can be verified without the original machine or the internet**. R0.14 provides two read-only commands: `portable-kit-plan` inventories an explicitly assembled source kit, independently clones/fsck-verifies its included Git bundle, checks every included content-addressed LFS/Release file's name against its SHA-256 bytes, and prints a repeatable unsigned manifest to stdout. `portable-kit-verify` checks that an operator-copied kit has **the exact same files, sizes and hashes** and re-verifies its Git bundle.
+
+Use a kit folder containing `snapshot/repository.bundle`, `snapshot/snapshot.json`, and optional `lfs/objects/sha256/<2-digit-prefix>/<64-digit-hash>` and `releases/releases/sha256/<2-digit-prefix>/<64-digit-hash>` files. No arbitrary extra files, links, symlinks or partial inventories are allowed. Max 128 asset files and 4 GiB of selected contents.
+
+```powershell
+npm run homenode -- portable-kit-plan "D:\PhiOSCatalog\<catalog>.json" "PhiOS" "E:\PreparedPhiOSKit"
+npm run homenode -- portable-kit-verify "D:\PhiOSCatalog\<saved-portable-manifest>.json" "F:\CopiedPhiOSKit"
+```
+
+The tool **never copies files or disconnects your WAN**. You manually copy the kit, keep the reference manifest separate, and can run `portable-kit-verify` on the copied device with the original source unavailable. This proves byte equality against the **unsigned** reference file, not independent physical media, a live offline boot, publisher authenticity, or completeness of all ecosystem assets. [R0.14 field guide](docs/PHIOS_R14_PORTABLE_KIT_FIELD_DRILL.md).
+
 ## PhiOS R0.13: unified offline recovery evidence gates
 
 R0.13 combines our existing **R0.5 current-ref Git bundle coverage**, **R0.9 LFS tip byte verification**, **R0.10 exact submodule commit availability**, and **R0.12 archived GitHub Release attachment verification** into a single no-network evidence report for one explicitly selected public repository. It refuses mismatched pinned branch tips and reports missing, corrupt, unsupported, or unprovided evidence without awarding a fake 'offline-ready' badge.
