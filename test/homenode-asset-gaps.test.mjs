@@ -42,6 +42,13 @@ async function initMirror(f, name = 'PhiOS', options = {}) {
       '[submodule "deps/lib"]\n\tpath = deps/lib\n\turl = https://example.invalid/unavailable.git\n');
   }
   await git(['-C', work, 'add', '.']);
+  if (options.malformed) {
+    // Git LFS clean filters can silently turn malformed test data into a
+    // valid pointer-to-a-pointer. Pin the literal unfiltered blob in the index.
+    const literal = await git(['-C', work, 'hash-object', '-w', '--no-filters', 'big.bin']);
+    await git(['-C', work, 'update-index', '--add', '--cacheinfo',
+      '100644,' + literal + ',big.bin']);
+  }
   if (options.submodule) {
     await git(['-C', work, 'update-index', '--add', '--cacheinfo',
       '160000,' + SUB_SHA + ',deps/lib']);
