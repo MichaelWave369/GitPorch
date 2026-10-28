@@ -93,6 +93,18 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.13: unified offline recovery evidence gates
+
+R0.13 combines our existing **R0.5 current-ref Git bundle coverage**, **R0.9 LFS tip byte verification**, **R0.10 exact submodule commit availability**, and **R0.12 archived GitHub Release attachment verification** into a single no-network evidence report for one explicitly selected public repository. It refuses mismatched pinned branch tips and reports missing, corrupt, unsupported, or unprovided evidence without awarding a fake 'offline-ready' badge.
+
+```powershell
+npm run homenode -- offline-readiness "D:\PhiOSCatalog\<catalog>.json" "PhiOS" "main" "E:\GitPorchSnapshots" "E:\PhiOSAssets" "D:\PhiOSCatalog\<saved-release-inventory>.json" "E:\PhiOSArchive"
+```
+
+If no saved public-release inventory/asset store exists yet, use literal `none none` for the last two arguments; that **blocks** the Release evidence gate. The command emits an unsigned repeatable JSON status report to stdout and does not connect to GitHub, fetch external assets, or change source/backup files. Existing bundle verification may create and delete temporary isolated Git clones as part of R0.5.
+
+Passing all four *bounded local-evidence gates* still **never means** independent physical media, historical Git/LFS coverage, current GitHub parity, WAN-disconnected restoration, or a working PhiOS boot. Those need a separate operator-run physical acceptance drill. See [R0.13 guide](docs/PHIOS_R13_OFFLINE_RECOVERY_EVIDENCE.md).
+
 ## PhiOS R0.12: approved single-asset GitHub Release preservation
 
 R0.12 extends the R0.11 published-asset census to **actual SHA-256 verified byte archival** for one selected public GitHub Release asset. First save the output of the explicitly approved R0.11 `release-inventory` command as a local JSON file. Then run an **offline, read-only preview**, review the exact asset ID, release ID, published SHA-256, size, archive root and plan fingerprint, and separately approve a **single** capped network download:
