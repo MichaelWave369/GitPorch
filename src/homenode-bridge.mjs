@@ -109,7 +109,7 @@ export async function planImport(catalog, dataDir = getDataDir()) {
 }
 
 // Exposed for isolated tests using a local Git source. Not a CLI accepting an arbitrary source URL.
-export async function importMirrorFromSource(name, source, dataDir = getDataDir()) {
+export async function importMirrorFromSource(name, source, dataDir = getDataDir(), options = {}) {
   if (!validSlug(name)) throw new Error('GitPorch does not support this repository name');
   if (typeof source !== 'string' || !source) throw new Error('Missing Git source');
   const { root, names } = await existingNames(dataDir);
@@ -125,7 +125,8 @@ export async function importMirrorFromSource(name, source, dataDir = getDataDir(
     if (second.names.has((name + '.git').toLowerCase())) throw new Error('Repository appeared during import; refusing overwrite');
     stage = await mkdtemp(join(root, '.incoming-'));
     const clone = join(stage, 'mirror.git');
-    await git(['-c', 'credential.helper=', '-c', 'core.askPass=', 'clone', '--mirror', '--', source, clone], { timeout: 600_000 });
+    await git(['-c', 'credential.helper=', '-c', 'core.askPass=', 'clone', '--mirror', '--', source, clone],
+      { timeout: 600_000, env: options.cloneEnv });
     const refs = await git(['--git-dir', clone, 'for-each-ref', '--format=%(refname)'], { timeout: 180_000 });
     if (!refs.trim()) throw new Error('Source repository has no refs; refusing incomplete mirror');
     await git(['--git-dir', clone, 'fsck', '--full', '--no-reflogs'], { timeout: 180_000 });
@@ -144,11 +145,11 @@ export async function importMirrorFromSource(name, source, dataDir = getDataDir(
   }
 }
 
-export async function importPublicRepository(catalog, name, dataDir = getDataDir()) {
+export async function importPublicRepository(catalog, name, dataDir = getDataDir(), options = {}) {
   if (!catalog || catalog.schema !== SCHEMA || !validOwner(catalog.owner)) throw new Error('Invalid catalog');
   if (!validSlug(name)) throw new Error('Repository name unsupported by GitPorch');
   const item = catalog.repositories.find(x => x.name === name && x.eligible);
   if (!item) throw new Error('Repository is not eligible or not present in the public catalog');
   const source = 'https://github.com/' + catalog.owner + '/' + name + '.git';
-  return importMirrorFromSource(name, source, dataDir);
+  return importMirrorFromSource(name, source, dataDir, options);
 }
