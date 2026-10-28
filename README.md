@@ -93,6 +93,19 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.7: approved one-object Git LFS byte intake
+
+This first LFS byte rung uses **one operator-selected local file**, not a GitHub download. A read-only `lfs-plan` verifies the current Git branch-tip LFS pointer against the file's true SHA-256 and declared byte length, up to **64 MiB per invocation**. After reviewing the SHA-256 plan fingerprint, `lfs-intake` preserves the matching bytes under a content-addressed asset store **outside** GitPorch data, without overwriting. `lfs-verify` checks the preserved object again **without** requiring the original payload file.
+
+```powershell
+# Replace example absolute paths and names with actual existing paths.
+npm run homenode -- lfs-plan "D:\PhiOSCatalog\<catalog>.json" "PhiOS" "main" "models/model.bin" "D:\AssetImports\model.bin" "E:\PhiOSAssets"
+npm run homenode -- lfs-intake "D:\PhiOSCatalog\<catalog>.json" "PhiOS" "main" "models/model.bin" "D:\AssetImports\model.bin" "E:\PhiOSAssets" "<returned-planSha256>" --i-approve-lfs-byte-intake
+npm run homenode -- lfs-verify "D:\PhiOSCatalog\<catalog>.json" "PhiOS" "main" "models/model.bin" "E:\PhiOSAssets"
+```
+
+No arbitrary URLs, GitHub tokens, auto-smudge, hooks, network activity, code execution or files bigger than 64 MiB. This does **not** collect every historical LFS object or release, verify separate physical media, establish remote GitHub parity, or qualify an offline PhiOS build. See [R0.7 LFS byte intake](docs/PHIOS_R07_LFS_BYTE_INTAKE.md).
+
 ## PhiOS R0.6: offline external asset dependency gap audit
 
 A Git bundle preserves reachable Git objects, **not** the contents referenced by Git LFS pointers, submodule gitlinks, or GitHub release downloads. The first R0.6 tool inspects up to five explicitly named public local bare mirrors and checks a bounded set of branch-tip trees for Git LFS pointers, tracked `.gitattributes` LFS declarations, and submodule gitlink references. It never downloads or executes them.
