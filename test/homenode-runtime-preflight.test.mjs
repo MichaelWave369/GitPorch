@@ -143,13 +143,16 @@ test('invalid or changing branch refs never yield a readiness success', async ()
     /Restricted local recovered-Git inspection/);
 }));
 
-test('runtime tree checks reject unsafe symlinked entry metadata rather than executing source', async () => fixture(async f => {
-  await git(['--git-dir', f.restored, 'update-ref',
-    'refs/heads/main', '0000000000000000000000000000000000000000']).catch(() => {});
-  // No compilation or install occurs in the verifier even if JS source exists.
+test('an intact restored TypeScript project is never executed or considered built by preflight', async () => fixture(async f => {
+  // Read-only inspection must not mutate a branch, invoke npm, or compile.
+  const before = await git(['--git-dir', f.restored, 'rev-parse', 'refs/heads/main']);
   const r = await run(f);
+  const after = await git(['--git-dir', f.restored, 'rev-parse', 'refs/heads/main']);
+  assert.equal(after, before);
   assert.equal(r.web.packageEvidence.packagesInstalledAndVerified, false);
   assert.equal(r.web.packageEvidence.buildExecuted, false);
+  assert.equal(r.acceptance.offlineNpmBuildPassed, false);
+  assert.equal(r.acceptance.siteServedAndBrowserVerifiedOffline, false);
 }));
 
 test('CLI performs offline preflight with exact inputs and rejects missing required branch', async () => fixture(async f => {
