@@ -93,6 +93,17 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.4: a real offline restore drill
+
+Imported Git source is not recoverable merely because it passes a local fsck. After saving a verified HomeNode bundle on a separate backup disk, the **explicit** restore-drill command reopens that bundle into a NEW, standalone bare Git repository, checks every ref and Git object, and leaves the recovered repository available for inspection. There is no network, no overwriting the live copy and no new listener.
+
+```powershell
+# Both directories must exist. Run with WAN disconnected for your own acceptance drill.
+npm run homenode -- drill "E:\PhiOSBackups\gitporch-PhiOS-<generated-id>" "D:\PhiOSRecovered" --i-confirm-local-restore
+```
+
+The command returns a local, unsigned JSON result with the actual recovered path and deliberately **false** claims for independent storage media, physical WAN disconnection, LFS, complete GitHub metadata and PhiOS boot readiness. CI only proves synthetic fixture restoration. Read [the R0.4 operator guide](docs/PHIOS_R04_OFFLINE_RESTORE_DRILL.md).
+
 ## ΦOS HomeNode R1-H2: public GitHub bridge
 
 An **opt-in public-only** GitHub catalog and verified one-repository mirror importer builds on R1-H1 snapshots:
