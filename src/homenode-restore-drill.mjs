@@ -145,7 +145,7 @@ export async function restoreBundleDrill(snapshotDir, restoreParent, options = {
       '--git-dir', restored, 'for-each-ref', '--format=%(refname)%09%(objectname)',
     ]));
     if (JSON.stringify(actualRefs) !== JSON.stringify(expectedRefs)) {
-      fail('Restored refs do not match signed-off snapshot manifest');
+      fail('Restored refs do not match recorded snapshot manifest');
     }
     // A recovery must be self-contained. Never retain a reference to the
     // original backup bundle on a removable disk as a live fetch remote.
