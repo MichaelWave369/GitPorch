@@ -93,6 +93,18 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.16: recovered-source offline launch prerequisite preflight
+
+**A recovered Git repository is not automatically a running application.** R0.16 inspects one validated, copied and independently restored public repository's selected branch without running its code. It composes the R0.15 copied-kit and recovered-Git verification first, then checks tracked HTML/JS package entrypoints, build scripts, dependency lockfile presence, Python dependency manifests and Linux ISO build/release sources.
+
+This distinction is especially important for PhiOS: the website is a **Vite + TypeScript + React source project**, whose `site/index.html` references `/src/main.tsx`. A raw HTML file from that source tree **is not a self-contained offline build**; the standalone offline frontend needs a prebuilt deployable output and its required assets, or a separately verified local build toolchain and dependency cache. Likewise, Linux archiso sources are not a bootable ISO.
+
+```powershell
+npm run homenode -- runtime-preflight "D:\PhiOSEvidence\portable-kit-reference.json" "F:\CopiedPhiOSKit" "D:\PhiOSDisposableRestore\<actual-restored-repository>.git" "main"
+```
+
+The command reports what is tracked and what is **still unverified**. It never installs packages, calls GitHub, extracts files, executes scripts, spins up servers, or changes the network. All launcher/boot/physical WAN readiness flags remain false. See [R0.16 source and runtime guide](docs/PHIOS_R16_OFFLINE_RUNTIME_PREFLIGHT.md).
+
 ## PhiOS R0.15: offline field evidence with honest human/test boundaries
 
 After R0.14 verifies a copied kit, R0.15 rechecks the kit and an **actual separately restored bare Git repository**. It performs restricted local Git fsck, matches **every restored ref and commit OID** to the copied snapshot, and rejects external alternates, remote configurations and unsafe paths. An optional small operator observation JSON records what a human saw during the field test, but its WAN, media independence and component launch claims are **explicitly unsigned and unverified**. The report never claims full PhiOS offline readiness.
