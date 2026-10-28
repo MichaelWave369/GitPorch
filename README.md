@@ -93,6 +93,16 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.10: offline submodule commit recovery ledger
+
+Normal Git bundles preserve submodule **gitlink commit identifiers**, not the external repositories they reference. The new `submodule-ledger` reads the pinned parent branch-tip tree and a bounded local `.gitmodules` file without contacting its URLs. It checks only exact, public-cataloged `github.com/MichaelWave369/<repo>` submodule targets and asks whether their **referenced commit** is present and reachable from refs in a separately fsck-verified local GitPorch mirror.
+
+```powershell
+npm run homenode -- submodule-ledger "D:\PhiOSCatalog\<actual-catalog>.json" "PhiOS" "main"
+```
+
+Every target is marked locally available or missing/unverified, including unapproved URLs and mismatched .gitmodules paths. It emits no untrusted URL strings, private catalog entries or local file paths. There is no GitHub fetch, submodule checkout, cloning, downloading, file write or code execution. A verified target commit still **does not mean its bare repository has been independently bundled and restored**, or that nested submodules, LFS payloads, releases, GitHub upstream authenticity or PhiOS boot are covered. [R0.10 operator guide](docs/PHIOS_R10_SUBMODULE_RECOVERY_LEDGER.md).
+
 ## PhiOS R0.9: local LFS multi-object recovery manifest
 
 One missing LFS object is manageable; dozens of them need a ledger. The R0.9 `lfs-manifest` command inventories canonical Git LFS pointer files from **one explicitly selected, pinned, locally verified public Git branch tip** and checks which underlying payload bytes are independently readable and SHA-256 valid in the content-addressed local asset store:
