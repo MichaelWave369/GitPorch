@@ -30,7 +30,8 @@
     "gateway": "node src/homenode-gateway-cli.mjs",
     "companion": "node src/homenode-companion-cli.mjs",
     "code-brown": "node src/code-brown-cli.mjs",
-    "smergeon": "node src/smergeon-intake-cli.mjs"
+    "smergeon": "node src/smergeon-intake-cli.mjs",
+    "audit:public-mirrors": "node src/homenode-bridge-cli.mjs audit"
   },
   "license": "MIT"
 }
