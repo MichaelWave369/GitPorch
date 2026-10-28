@@ -144,6 +144,9 @@ export async function offlineRecoveryReadiness(
   dataDir = getDataDir(), checks = {},
 ) {
   const selected = scopedCatalog(catalog, name);
+  if ((releaseManifest === 'none') !== (releaseStore === 'none')) {
+    deny('Release inventory and archive root must be supplied together or both be none');
+  }
   if (!safeBranch(branch)) deny('Unsafe branch');
   for (const [label, path] of [['backupRoot', backupRoot], ['lfsRoot', lfsRoot]]) {
     if (typeof path !== 'string' || !isAbsolute(path)) {
