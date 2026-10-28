@@ -48,7 +48,9 @@
     "release:archive-plan": "node src/homenode-cli.mjs release-archive-plan",
     "release:archive": "node src/homenode-cli.mjs release-archive",
     "release:archive-verify": "node src/homenode-cli.mjs release-archive-verify",
-    "offline:readiness": "node src/homenode-cli.mjs offline-readiness"
+    "offline:readiness": "node src/homenode-cli.mjs offline-readiness",
+    "portable:plan": "node src/homenode-cli.mjs portable-kit-plan",
+    "portable:verify": "node src/homenode-cli.mjs portable-kit-verify"
   },
   "license": "MIT"
 }
