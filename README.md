@@ -93,6 +93,18 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.9: local LFS multi-object recovery manifest
+
+One missing LFS object is manageable; dozens of them need a ledger. The R0.9 `lfs-manifest` command inventories canonical Git LFS pointer files from **one explicitly selected, pinned, locally verified public Git branch tip** and checks which underlying payload bytes are independently readable and SHA-256 valid in the content-addressed local asset store:
+
+```powershell
+npm run homenode -- lfs-manifest "D:\PhiOSCatalog\<actual-catalog>.json" "PhiOS" "main" "E:\PhiOSAssets"
+```
+
+The report includes each unique pointer SHA-256, declared size, tracked source paths, local verification status and per-object R0.8 download-pilot eligibility. It counts missing, verified and corrupted objects and prints a stable SHA-256 fingerprint for the **unsigned** report. It does not write files or access the network.
+
+Safety caps: 30,000 tracked tip entries, 256 canonical pointer candidates, 64 distinct LFS objects, and 256 MiB aggregate inspected payload bytes. Exceeding limits **refuses incomplete reporting**. A verified report means *only the detected LFS pointers at this selected Git branch tip*, not historical LFS objects, other branches, releases, submodules, independent off-host media or bootable PhiOS. [R0.9 operator guide](docs/PHIOS_R09_LFS_RECOVERY_MANIFEST.md).
+
 ## PhiOS R0.8: explicit, bounded GitHub LFS acquisition
 
 R0.8 extends the verified local LFS pointer chain to a single **operator-approved GitHub LFS download**. Review an offline `lfs-fetch-plan`, then run `lfs-fetch` with that exact plan fingerprint and an explicit approval flag. Only `github.com/MichaelWave369/<public-repo>.git/info/lfs/objects/batch` can be contacted for the GitHub LFS transfer agreement; its subsequent download action must use a tightly allowlisted GitHub media or object-storage hostname with **HTTPS**, no redirects, and a **64 MiB stream limit**. The downloaded bytes must match the exact SHA-256 and size from the locally verified Git pointer or they are discarded.
