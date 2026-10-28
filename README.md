@@ -107,6 +107,18 @@ The catalog directory must already exist. Import never replaces an existing loca
 
 Read [the bridge operator guide](docs/HOMENODE_BRIDGE.md) and verify an external snapshot before relying on offline recovery.
 
+## PhiOS R0.2: offline public-mirror census (read-only)
+
+The operator can run a **network-silent** multi-repository audit of an already-downloaded public GitHub catalog against the local GitPorch store:
+
+```powershell
+npm run bridge -- audit 'D:\\PhiOSCatalog\\gitporch-public-MichaelWave369-<generated-id>.json'
+# Optional: exit code 2 unless every catalog entry has locally verified Git objects:
+npm run bridge -- audit 'D:\\PhiOSCatalog\\gitporch-public-MichaelWave369-<generated-id>.json' --require-all-local-objects-verified
+```
+
+It checks local bare Git object structure and records a digest of refs for each present, supported source; missing repos stay NOT_LOCAL. This **does not** clone, back up, restore, fetch, sync, inspect private GitHub repositories, or prove the local refs match GitHub. It grants no offline readiness, mirroring completion or publication authority. [R0.2 operator guide](docs/PHIOS_R02_PUBLIC_MIRROR_AUDIT.md).
+
 ## HomeNode R1-H3: scaling the local Git repository namespace
 
 The HomeNode capacity policy now supports **up to 2,048 supported local repositories** and GitPorch names **up to 100 characters** (excluding Windows reserved device basenames and unsafe filename patterns). Inventory no longer silently truncates at 200. Repository scans use a maximum of eight simultaneous Git workers rather than spawning subprocesses for every repository at once.
