@@ -31,7 +31,7 @@ export async function git(args, options = {}) {
     maxBuffer: 4 * 1024 * 1024,
     windowsHide: true,
     cwd: options.cwd,
-    env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+    env: options.env ? { ...options.env, GIT_TERMINAL_PROMPT: '0' } : { ...process.env, GIT_TERMINAL_PROMPT: '0' },
   });
   return stdout.trimEnd();
 }
