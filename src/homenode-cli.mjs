@@ -11,6 +11,7 @@ import { auditSubmoduleRecovery } from './homenode-submodule-ledger.mjs';
 import { inventoryPublicReleaseAssets } from './homenode-release-inventory.mjs';
 import { planReleaseAssetArchive, acquireReleaseAsset, verifyReleaseAssetArchive } from './homenode-release-archive.mjs';
 import { offlineRecoveryReadiness } from './homenode-offline-readiness.mjs';
+import { planPortableRecoveryKit, verifyPortableRecoveryKit } from './homenode-portable-kit.mjs';
 
 const help = [
   'GitPorch HomeNode R1-H1 (single-operator, localhost only)',
@@ -32,6 +33,8 @@ const help = [
   '  node src/homenode-cli.mjs release-archive <catalog> <saved-inventory> <repo> <asset-id> <absolute-archive-root> <plan-sha256> --i-approve-release-download',
   '  node src/homenode-cli.mjs release-archive-verify <catalog> <saved-inventory> <repo> <asset-id> <absolute-archive-root>  (offline readback)',
   '  node src/homenode-cli.mjs offline-readiness <catalog> <repo> <branch> <backup-root> <lfs-root> <saved-release-inventory|none> <release-archive-root|none>  (offline evidence)',
+  '  node src/homenode-cli.mjs portable-kit-plan <catalog> <public-repo> <existing-kit-root>  (offline, read-only)',
+  '  node src/homenode-cli.mjs portable-kit-verify <saved-kit-manifest.json> <copied-kit-root>  (offline, read-only)',
   'Network only with explicit public release lookup, approved LFS fetch, or approved release-asset download. No unattended sync or system installation.',
 ].join('\n');
 
@@ -40,6 +43,10 @@ async function main() {
   if (command === 'inventory' && !args.length) return console.log(JSON.stringify(await inventory(), null, 2));
   if (command === 'backup' && args.length === 2) return console.log(JSON.stringify(await backupRepo(args[0], args[1]), null, 2));
   if (command === 'verify' && args.length === 1) return console.log(JSON.stringify(await verifyBackup(args[0]), null, 2));
+  if (command === 'portable-kit-plan' && args.length === 3)
+    return console.log(JSON.stringify(await planPortableRecoveryKit(await loadCatalog(args[0]), args[1], args[2]), null, 2));
+  if (command === 'portable-kit-verify' && args.length === 2)
+    return console.log(JSON.stringify(await verifyPortableRecoveryKit(args[0], args[1]), null, 2));
   if (command === 'offline-readiness' && args.length === 7)
     return console.log(JSON.stringify(await offlineRecoveryReadiness(await loadCatalog(args[0]), ...args.slice(1)), null, 2));
   if (command === 'release-archive-plan' && args.length === 5)
