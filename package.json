@@ -39,7 +39,9 @@
     "assets:gaps": "node src/homenode-cli.mjs asset-gaps",
     "lfs:plan": "node src/homenode-cli.mjs lfs-plan",
     "lfs:intake": "node src/homenode-cli.mjs lfs-intake",
-    "lfs:verify": "node src/homenode-cli.mjs lfs-verify"
+    "lfs:verify": "node src/homenode-cli.mjs lfs-verify",
+    "lfs:fetch-plan": "node src/homenode-cli.mjs lfs-fetch-plan",
+    "lfs:fetch": "node src/homenode-cli.mjs lfs-fetch"
   },
   "license": "MIT"
 }

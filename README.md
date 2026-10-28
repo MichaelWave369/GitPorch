@@ -93,6 +93,17 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.8: explicit, bounded GitHub LFS acquisition
+
+R0.8 extends the verified local LFS pointer chain to a single **operator-approved GitHub LFS download**. Review an offline `lfs-fetch-plan`, then run `lfs-fetch` with that exact plan fingerprint and an explicit approval flag. Only `github.com/MichaelWave369/<public-repo>.git/info/lfs/objects/batch` can be contacted for the GitHub LFS transfer agreement; its subsequent download action must use a tightly allowlisted GitHub media or object-storage hostname with **HTTPS**, no redirects, and a **64 MiB stream limit**. The downloaded bytes must match the exact SHA-256 and size from the locally verified Git pointer or they are discarded.
+
+```powershell
+npm run homenode -- lfs-fetch-plan "D:\PhiOSCatalog\<actual-catalog>.json" "PhiOS" "main" "models/model.bin" "E:\PhiOSAssets"
+npm run homenode -- lfs-fetch "D:\PhiOSCatalog\<actual-catalog>.json" "PhiOS" "main" "models/model.bin" "E:\PhiOSAssets" "<planSha256>" --i-approve-github-lfs-download
+```
+
+Public LFS may work without a token. For access that requires authentication, set a **separately scoped** `GITPORCH_LFS_TOKEN` in the operator process environment; it is sent only to GitHub's LFS batch endpoint, not automatically forwarded to a CDN, recorded, or printed. Unsupported action hosts/headers are **rejected rather than silently trusted**; real GitHub success still needs operator-machine testing. No automatic import of arbitrary URLs, private projects, recurring sync or claim of complete LFS coverage. [Read R0.8 boundaries](docs/PHIOS_R08_GITHUB_LFS_DOWNLOAD.md).
+
 ## PhiOS R0.7: approved one-object Git LFS byte intake
 
 This first LFS byte rung uses **one operator-selected local file**, not a GitHub download. A read-only `lfs-plan` verifies the current Git branch-tip LFS pointer against the file's true SHA-256 and declared byte length, up to **64 MiB per invocation**. After reviewing the SHA-256 plan fingerprint, `lfs-intake` preserves the matching bytes under a content-addressed asset store **outside** GitPorch data, without overwriting. `lfs-verify` checks the preserved object again **without** requiring the original payload file.
