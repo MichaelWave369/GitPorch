@@ -93,6 +93,16 @@ npm run homenode -- verify 'E:\PhiOSBackups\gitporch-hello-world-<generated-id>'
 
 Read [the HomeNode operator and restore guide](docs/HOMENODE.md) before relying on snapshots. The existing dashboard is still localhost-only and unauthenticated. **Do not expose its ports to a LAN or the public internet.**
 
+## PhiOS R0.5: public source backup coverage ledger
+
+Use an existing public GitPorch catalog and existing HomeNode backup directory to report which local source mirrors are covered by verified, restorable Git bundles:
+
+```powershell
+npm run homenode -- coverage "D:\PhiOSCatalog\<actual-catalog>.json" "E:\PhiOSBackups"
+```
+
+This checks matching public snapshot folders using temporary local Git restores, then compares the bundle's branch/tag refs to the current local GitPorch mirror fingerprints. It labels **missing, invalid, matching, stale/different, or locally unavailable** instead of declaring a complete backup. It does not create/update/remove any Git mirror or backup bundle, fetch GitHub, or publish private data. It also cannot establish physical media independence, LFS preservation, GitHub parity or full PhiOS offline readiness. See [the R0.5 guide](docs/PHIOS_R05_BACKUP_COVERAGE.md).
+
 ## PhiOS R0.4: a real offline restore drill
 
 Imported Git source is not recoverable merely because it passes a local fsck. After saving a verified HomeNode bundle on a separate backup disk, the **explicit** restore-drill command reopens that bundle into a NEW, standalone bare Git repository, checks every ref and Git object, and leaves the recovered repository available for inspection. There is no network, no overwriting the live copy and no new listener.
