@@ -33,7 +33,8 @@
     "smergeon": "node src/smergeon-intake-cli.mjs",
     "audit:public-mirrors": "node src/homenode-bridge-cli.mjs audit",
     "batch:plan": "node src/homenode-bridge-cli.mjs batch-plan",
-    "batch:import": "node src/homenode-bridge-cli.mjs batch-import"
+    "batch:import": "node src/homenode-bridge-cli.mjs batch-import",
+    "restore:drill": "node src/homenode-cli.mjs drill"
   },
   "license": "MIT"
 }
