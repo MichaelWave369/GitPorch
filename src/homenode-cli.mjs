@@ -8,6 +8,7 @@ import { planLocalLfsIntake, intakeLocalLfsObject, verifyLocalLfsObject } from '
 import { planGitHubLfsDownload, acquireGitHubLfsObject } from './homenode-lfs-download.mjs';
 import { auditLfsRecoveryManifest } from './homenode-lfs-manifest.mjs';
 import { auditSubmoduleRecovery } from './homenode-submodule-ledger.mjs';
+import { inventoryPublicReleaseAssets } from './homenode-release-inventory.mjs';
 
 const help = [
   'GitPorch HomeNode R1-H1 (single-operator, localhost only)',
@@ -24,7 +25,8 @@ const help = [
   '  node src/homenode-cli.mjs lfs-fetch <catalog> <repo> <branch> <tracked-path> <absolute-asset-root> <plan-sha256> --i-approve-github-lfs-download',
   '  node src/homenode-cli.mjs lfs-manifest <catalog> <repo> <branch> <absolute-asset-root>  (offline, read-only)',
   '  node src/homenode-cli.mjs submodule-ledger <catalog> <parent-repo> <branch>  (offline, read-only)',
-  'No GitHub network access, overwrite, remote push, automatic sync or system install.',
+  '  node src/homenode-cli.mjs release-inventory <catalog> <public-repo> --i-approve-public-release-lookup  (online metadata, no download)',
+  'All operations except explicitly approved public release lookups / LFS fetches are offline. No automatic sync or system installation.',
 ].join('\n');
 
 async function main() {
@@ -32,6 +34,8 @@ async function main() {
   if (command === 'inventory' && !args.length) return console.log(JSON.stringify(await inventory(), null, 2));
   if (command === 'backup' && args.length === 2) return console.log(JSON.stringify(await backupRepo(args[0], args[1]), null, 2));
   if (command === 'verify' && args.length === 1) return console.log(JSON.stringify(await verifyBackup(args[0]), null, 2));
+  if (command === 'release-inventory' && args.length === 3 && args[2] === '--i-approve-public-release-lookup')
+    return console.log(JSON.stringify(await inventoryPublicReleaseAssets(await loadCatalog(args[0]), args[1]), null, 2));
   if (command === 'submodule-ledger' && args.length === 3)
     return console.log(JSON.stringify(await auditSubmoduleRecovery(await loadCatalog(args[0]), ...args.slice(1)), null, 2));
   if (command === 'lfs-manifest' && args.length === 4)
