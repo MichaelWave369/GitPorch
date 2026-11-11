@@ -55,7 +55,8 @@
     "runtime:preflight": "node src/homenode-cli.mjs runtime-preflight",
     "frontend:scan": "node src/homenode-cli.mjs frontend-scan",
     "frontend:verify": "node src/homenode-cli.mjs frontend-verify",
-    "frontend:serve": "node src/homenode-cli.mjs frontend-serve"
+    "frontend:serve": "node src/homenode-cli.mjs frontend-serve",
+    "muse:pilot": "node src/muse-bridge-pilot.mjs"
   },
   "license": "MIT"
 }
