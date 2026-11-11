@@ -12,7 +12,7 @@ const SHA_RE = /^[0-9a-f]{40,64}$/;
 const REF_RE = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/;
 
 function git(cwd, args) {
-  const result = spawnSync('git', ['-C', cwd, ...args], {
+  const result = spawnSync('git', ['-C', cwd, '-c', 'core.hooksPath=/dev/null', '-c', 'core.fsmonitor=false', ...args], {
     encoding: 'utf8',
     timeout: 20000,
     maxBuffer: 4 * 1024 * 1024,
@@ -45,6 +45,14 @@ function overlaps(a, b) {
   const relative = path.relative(a, b);
   return relative === '' || (!relative.startsWith('..' + path.sep) &&
     relative !== '..' && !path.isAbsolute(relative));
+}
+
+function canonicalNewTarget(target, label) {
+  const parent = path.dirname(target);
+  if (!fs.existsSync(parent) || !fs.statSync(parent).isDirectory()) {
+    throw new Error(label + ' parent directory must already exist');
+  }
+  return path.join(fs.realpathSync(parent), path.basename(target));
 }
 
 function requireDistinctPaths(paths) {
@@ -91,11 +99,15 @@ export function makeBridgePlan({ source, museDir, mirrorDir, branch = 'main' }) 
   const gitSource = absolute(source, 'Git source');
   const muse = absolute(museDir, 'Muse destination');
   const mirror = absolute(mirrorDir, 'Git mirror destination');
-  requireDistinctPaths([gitSource, muse, mirror]);
   if (fs.existsSync(muse) || fs.existsSync(mirror)) {
     throw new Error('Muse and mirror destinations must NOT exist; use fresh disposable paths');
   }
   const inspected = inspectGitRepository(gitSource, branch);
+  requireDistinctPaths([
+    fs.realpathSync(gitSource),
+    canonicalNewTarget(muse, 'Muse destination'),
+    canonicalNewTarget(mirror, 'Git mirror destination'),
+  ]);
   if (!inspected.clean) throw new Error('Git source has working-tree changes; use a clean disposable copy');
   return {
     schema: 'gitporch.muse-bridge-readiness.v1',
