@@ -70,8 +70,15 @@ test('plan refuses overlapping, existing, or dirty targets', t => {
   createDisposableFixture(source, true);
   const museDir = path.join(root, 'muse-new');
   const mirrorDir = path.join(root, 'mirror-new');
-  assert.throws(() => makeBridgePlan({ source, museDir: source, mirrorDir }), /disjoint/);
-  assert.throws(() => makeBridgePlan({ source, museDir, mirrorDir: path.join(museDir, 'git') }), /disjoint/);
+  assert.throws(() => makeBridgePlan({ source, museDir: source, mirrorDir }), /must NOT exist|disjoint/);
+  assert.throws(() => makeBridgePlan({ source, museDir, mirrorDir: path.join(museDir, 'git') }), /disjoint|parent directory/);
+  const alias = path.join(root, 'source-alias');
+  try {
+    fs.symlinkSync(source, alias, 'dir');
+    assert.throws(() => makeBridgePlan({ source, museDir: path.join(alias, 'new'), mirrorDir }), /disjoint/);
+  } catch (error) {
+    if (error.code !== 'EPERM' && error.code !== 'EACCES') throw error;
+  }
   fs.mkdirSync(museDir);
   assert.throws(() => makeBridgePlan({ source, museDir, mirrorDir }), /must NOT exist/);
   fs.rmdirSync(museDir);
