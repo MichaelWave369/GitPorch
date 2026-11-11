@@ -156,6 +156,7 @@ export function createDisposableFixture(directory, approved = false) {
   git(target, ['add', '-u']);
   git(target, ['commit', '-m', 'fixture: tracked deletion']);
   write(target, 'scripts/run.sh', '#!/bin/sh\necho fixture\n');
+  fs.chmodSync(path.join(target, 'scripts/run.sh'), 0o755);
   git(target, ['add', 'scripts/run.sh']);
   git(target, ['update-index', '--chmod=+x', 'scripts/run.sh']);
   git(target, ['commit', '-m', 'fixture: executable file mode']);
