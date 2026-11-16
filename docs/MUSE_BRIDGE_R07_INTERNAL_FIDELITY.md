@@ -2,6 +2,21 @@
 
 **This adds a new read-only audit to the manually dispatched disposable Muse trial. It has NOT yet been executed against the real Muse CLI.**
 
+## R0.7 live run #2: test-harness failure, NOT a Muse fidelity defect
+
+The first manual run after merging R0.7, [GitHub Actions #43976504464](https://github.com/MichaelWave369/GitPorch/actions/runs/43976504464), **failed only in the new internal-history auditor**. The preserved `muse-internal-history-audit.err` contains:
+
+```text
+[Muse R0.7] Muse read-only read-commit failed: usage: muse [-h] [--version] [-C DIR] COMMAND ...
+muse: error: unrecognized arguments: --format json
+```
+
+The Git snapshot, sync-state and consolidated Git evidence packet all **passed** again; all six synthetic commits imported; Muse 0.2.2rc9 installed cleanly. The checker had passed an unsupported `--format json` flag to Muse's low-level read command. **This is our bug, not a Muse issue; do not report it to Gabriel as upstream failure.**
+
+This PR fixes the command invocation to use `muse read-commit <64-hex-id>` and `muse read-snapshot <64-hex-id>`, whose default output is JSON. It accepts `sha256:<64hex>` from import receipts and either bare or prefixed IDs in readback records and manifests, but **still rejects malformed IDs and wrong parent/blob hashes**. A new fake Muse executable test ensures future changes never reintroduce the unsupported flag.
+
+**No actual internal-history parity result exists yet.** It requires another explicitly approved disposable manual workflow dispatch after review and merge. Do not run against real repositories or bypass the reviewed-installer hash.
+
 ## Why this is useful to Gabriel
 
 The first live R0.6 run, [GitHub Actions #43968439939](https://github.com/MichaelWave369/GitPorch/actions/runs/43968439939), installed **Muse 0.2.2rc9**, imported all six synthetic Git commits, passed snapshot/export and status audits, and passed 288 GitPorch regression tests. But it checked only the **final exported Git tree**, not the Muse engine's *stored parent DAG and historical snapshots*.
