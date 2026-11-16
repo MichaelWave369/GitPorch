@@ -1,5 +1,12 @@
 # The GitPorch
 
+## Muse interoperability readiness (R0.1, offline only)
+
+An optional **GitPorch × Muse** preparation pilot builds a disposable Git fixture,
+inspects its real history, and prints review-only Muse bridge commands. It does
+**not** run Muse, install a release candidate, push code, or touch production mirrors.
+Run `npm run muse:pilot --` for usage. See [the readiness and acceptance guide](docs/MUSE_BRIDGE_PILOT.md).
+
 ## Code Brown · Human usability gauntlet (CB-001)
 
 **If Brown can’t figure it out, we haven’t finished building it.** Code Brown is a six-question, *human-observed* first-use review for the Φ ecosystem: understand the app in 5 seconds, find the main action, achieve a useful result in 30 seconds, navigate on the actual device, recover from an error, and say whether they would return. It tests the interface, **not the visitor’s intelligence**.
