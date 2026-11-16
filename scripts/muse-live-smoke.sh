@@ -55,7 +55,10 @@ mkdir -m 700 "$ROOT/muse"
 # A separate, newly-created mirror with no Git remote. The first export's
 # ancestry is not a reconstruction of the original Git history.
 git init --initial-branch=muse-mirror "$ROOT/mirror" > "$ROOT/mirror-init.log" 2>&1
-git -C "$ROOT/mirror" -c user.name='GitPorch Smoke Fixture' -c user.email='synthetic@example.invalid' commit --allow-empty -m 'disposable mirror seed' > "$ROOT/mirror-seed.log" 2>&1
+git -C "$ROOT/mirror" config --local user.name 'GitPorch Smoke Fixture'
+git -C "$ROOT/mirror" config --local user.email 'synthetic@example.invalid'
+git -C "$ROOT/mirror" config --local commit.gpgsign false
+git -C "$ROOT/mirror" commit --allow-empty -m 'disposable mirror seed' > "$ROOT/mirror-seed.log" 2>&1
 if [[ -n "$(git -C "$ROOT/mirror" remote)" ]]; then
   echo 'Synthetic mirror unexpectedly has remotes.' >&2
   exit 2
