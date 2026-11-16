@@ -1,5 +1,14 @@
 # The GitPorch
 
+## Muse bridge R0.3 status-receipt verification (read-only)
+
+After a separately approved Muse Git round-trip against disposable repositories, verify
+that the saved `muse bridge git-status --json` receipt matches the actual source and
+mirror Git refs and reports zero drift. This does **not** verify Muse provenance,
+commit ancestry, or export correctness. Use `npm run muse:status-audit --` and
+read [the R0.3 guide](docs/MUSE_BRIDGE_R03_STATUS_RECEIPTS.md). No live Muse test
+is performed by this utility.
+
 ## Muse interoperability readiness (R0.1, offline only)
 
 An optional **GitPorch × Muse** preparation pilot builds a disposable Git fixture,
