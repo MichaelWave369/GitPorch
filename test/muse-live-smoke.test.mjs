@@ -54,3 +54,37 @@ test('R0.6 runs only documented operations against synthetic directories and nev
   assert.doesNotMatch(script, /(?:^|\n)\s*(?:git|muse) push\s/m);
   assert.match(script, /node src\/muse-bridge-evidence-packet\.mjs/);
 });
+
+
+test('R0.6 keeps installer and live CLI in the same ephemeral HOME and XDG paths', () => {
+  assert.match(workflow, /export HOME="\$RUNNER_TEMP\/muse-home"/g);
+  assert.ok(workflow.match(/export HOME="\$RUNNER_TEMP\/muse-home"/g)?.length === 2);
+  assert.ok(workflow.match(/export XDG_DATA_HOME="\$HOME\/.local\/share"/g)?.length === 2);
+  assert.ok(workflow.match(/export XDG_CONFIG_HOME="\$HOME\/.config"/g)?.length === 2);
+  assert.match(script, /Refusing non-isolated Muse HOME/);
+  assert.match(script, /current_stage=%s/);
+  assert.match(script, /failed_stage=%s/);
+  assert.match(script, /stage muse_import/);
+  assert.match(script, /stage muse_export/);
+  assert.match(script, /stage evidence_audits/);
+});
+
+test('R0.6 refuses approved-looking invocation with nonisolated HOME', t => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gitporch-muse-r06-home-'));
+  t.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
+  const mockBin = path.join(tmp, 'bin');
+  fs.mkdirSync(mockBin);
+  const fakeMuse = path.join(mockBin, 'muse');
+  fs.writeFileSync(fakeMuse, '#!/bin/sh\\nexit 0\\n');
+  fs.chmodSync(fakeMuse, 0o755);
+  const env = {
+    ...process.env,
+    PATH: mockBin + path.delimiter + process.env.PATH,
+    GITHUB_ACTIONS: 'true', MUSE_DISPOSABLE_APPROVED: 'RUN_DISPOSABLE_MUSE_TEST',
+    RUNNER_TEMP: tmp, GITHUB_WORKSPACE: root, HOME: tmp,
+  };
+  const p = spawnSync('bash', [scriptPath], { encoding: 'utf8', env });
+  assert.equal(p.status, 2);
+  assert.match(p.stderr, /Refusing non-isolated Muse HOME/);
+  assert.equal(fs.existsSync(path.join(tmp, 'gitporch-muse-r06')), false);
+});
