@@ -1,0 +1,79 @@
+name: Muse Disposable Live Bridge Trial (manual only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      disposable_approval:
+        description: 'Type RUN_DISPOSABLE_MUSE_TEST to authorize an isolated, no-push trial'
+        required: true
+        type: string
+      installer_sha256:
+        description: 'SHA-256 of install.sh independently reviewed by the operator'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-muse-bridge:
+    if: ${{ inputs.disposable_approval == 'RUN_DISPOSABLE_MUSE_TEST' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MUSE_DISPOSABLE_APPROVED: ${{ inputs.disposable_approval }}
+      MUSE_INSTALLER_SHA256: ${{ inputs.installer_sha256 }}
+    steps:
+      - name: Checkout reviewed GitPorch source without stored credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Set up isolated Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - name: Check GitPorch tests before external CLI
+        run: npm test
+      - name: Download Muse installer explicitly (no curl-to-shell pipe)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          curl --proto '=https' --tlsv1.2 -fLsS --retry 2 --max-time 60 'https://musehub.ai/install.sh' -o "$RUNNER_TEMP/muse-install.sh"
+          sh -n "$RUNNER_TEMP/muse-install.sh"
+          if [[ ! "$MUSE_INSTALLER_SHA256" =~ ^[a-fA-F0-9]{64}$ ]]; then
+            echo 'Invalid operator-provided SHA-256; refusing installer execution.' >&2
+            exit 2
+          fi
+          printf '%s  %s\n' "$MUSE_INSTALLER_SHA256" "$RUNNER_TEMP/muse-install.sh" | sha256sum --check --status
+          sha256sum "$RUNNER_TEMP/muse-install.sh" | tee "$RUNNER_TEMP/muse-installer-sha256.txt"
+          echo 'Installer is dynamic upstream code. This opt-in trial runs it only in an ephemeral runner with read-only token permissions.'
+      - name: Install Muse in runner temporary environment
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p "$RUNNER_TEMP/muse-bin"
+          MUSE_PROFILE=slim MUSE_VENV_DIR="$RUNNER_TEMP/muse-venv" MUSE_INSTALL_DIR="$RUNNER_TEMP/muse-bin" sh "$RUNNER_TEMP/muse-install.sh"
+          "$RUNNER_TEMP/muse-bin/muse" --version
+      - name: Run isolated source-import-export audit (never push)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          export PATH="$RUNNER_TEMP/muse-bin:$PATH"
+          bash scripts/muse-live-smoke.sh
+      - name: Preserve synthetic evidence for review, even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: muse-gitporch-r06-synthetic-evidence
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/muse-installer-sha256.txt
+            ${{ runner.temp }}/gitporch-muse-r06/*.json
+            ${{ runner.temp }}/gitporch-muse-r06/*.txt
+            ${{ runner.temp }}/gitporch-muse-r06/*.log
+            ${{ runner.temp }}/gitporch-muse-r06/*.err
