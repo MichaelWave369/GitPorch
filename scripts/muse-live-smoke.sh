@@ -22,8 +22,25 @@ if [[ ! -f "$CODE/src/muse-bridge-pilot.mjs" || ! -f "$CODE/src/muse-bridge-evid
   exit 2
 fi
 for binary in node git muse; do command -v "$binary" >/dev/null || { echo "Missing required command: $binary" >&2; exit 2; }; done
+# Real Muse runs only with a fresh, isolated home. No operator keychain or
+# pre-existing Muse auth, remotes or configuration should be visible.
+if [[ "${HOME:-}" != "$RUNNER_TEMP/muse-home" || ! -d "$HOME" ]]; then
+  echo 'Refusing non-isolated Muse HOME.' >&2
+  exit 2
+fi
 mkdir -m 700 "$ROOT"
-trap 'ec=$?; printf "Step failed (exit %s). Review synthetic logs; no production repository was used.\n" "$ec" > "$ROOT/runner-error.txt"; exit "$ec"' ERR
+STAGE=preflight
+stage() {
+  STAGE="$1"
+  printf 'current_stage=%s\n' "$STAGE" > "$ROOT/run-stage.txt"
+}
+on_failure() {
+  ec=$?
+  printf 'failed_stage=%s\nexit_code=%s\n' "$STAGE" "$ec" > "$ROOT/runner-error.txt"
+  exit "$ec"
+}
+trap on_failure ERR
+stage preflight
 cd "$CODE"
 {
   printf 'run_class=DISPOSABLE_GITHUB_ACTIONS\n'
@@ -31,6 +48,7 @@ cd "$CODE"
   git --version
   python3.14 --version
 } > "$ROOT/runner-versions.txt" 2>&1
+stage muse_version
 muse --version > "$ROOT/muse-version.txt" 2>&1
 muse bridge git-import --help > "$ROOT/import-help.txt" 2>&1
 muse bridge git-export --help > "$ROOT/export-help.txt" 2>&1
@@ -38,22 +56,27 @@ if ! grep -Fq -- '--no-push' "$ROOT/export-help.txt"; then
   echo 'Muse export help lacks explicit --no-push; refusing export.' >&2
   exit 2
 fi
+stage synthetic_fixture
 node src/muse-bridge-pilot.mjs fixture "$ROOT/source" --i-approve-disposable-fixture > "$ROOT/fixture.json" 2> "$ROOT/fixture.err"
 node src/muse-bridge-history-baseline.mjs "$ROOT/source" main > "$ROOT/git-history-baseline.json" 2> "$ROOT/history.err"
 if [[ -n "$(git -C "$ROOT/source" remote)" ]]; then
   echo 'Synthetic Git source unexpectedly has remotes.' >&2
   exit 2
 fi
+stage muse_init
 mkdir -m 700 "$ROOT/muse"
 (
   cd "$ROOT/muse"
   muse init > "$ROOT/muse-init.log" 2>&1
+  stage muse_import
   muse bridge git-import "$ROOT/source" --branch main --json > "$ROOT/muse-import.log" 2>&1
   # Only in our freshly created disposable directory; never in a user checkout.
+  stage muse_checkout
   muse checkout --force main > "$ROOT/muse-checkout.log" 2>&1
 )
 # A separate, newly-created mirror with no Git remote. The first export's
 # ancestry is not a reconstruction of the original Git history.
+stage mirror_init
 git init --initial-branch=muse-mirror "$ROOT/mirror" > "$ROOT/mirror-init.log" 2>&1
 git -C "$ROOT/mirror" config --local user.name 'GitPorch Smoke Fixture'
 git -C "$ROOT/mirror" config --local user.email 'synthetic@example.invalid'
@@ -66,10 +89,13 @@ fi
 (
   cd "$ROOT/muse"
   # Explicitly no push and no remote; writes are limited to the disposable mirror.
+  stage muse_export
   muse bridge git-export --git-dir "$ROOT/mirror" --git-branch muse-mirror --no-push --json > "$ROOT/muse-export.log" 2>&1
+  stage muse_status
   muse bridge git-status --git-dir "$ROOT/source" --json > "$ROOT/muse-status.json" 2> "$ROOT/muse-status.err"
 )
 # Do not let one failed gate conceal results from the other two.
+stage evidence_audits
 fail=0
 node src/muse-bridge-snapshot-audit.mjs "$ROOT/source" "$ROOT/mirror" > "$ROOT/snapshot-audit.json" 2> "$ROOT/snapshot-audit.err" || fail=1
 node src/muse-bridge-status-audit.mjs "$ROOT/source" "$ROOT/mirror" "$ROOT/muse-status.json" > "$ROOT/status-audit.json" 2> "$ROOT/status-audit.err" || fail=1
@@ -79,4 +105,5 @@ if [[ "$fail" -ne 0 ]]; then
   echo 'One or more evidence gates failed; see uploaded synthetic logs.' >&2
   exit 1
 fi
+stage complete
 printf 'Disposable Muse bridge trial complete; human review is still required.\n'
