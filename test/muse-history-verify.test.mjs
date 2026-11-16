@@ -20,3 +20,27 @@ test('side-branch tree contamination is detected',()=>{const c=captured();c.reco
 test('historical content, missing paths and wrong metadata are separate findings',()=>{const c=captured();c.records[0].snapshot.manifest['README.md']=blob('5');delete c.records[2].snapshot.manifest['README.md'];c.records[1].commit.metadata.git_sha=gs[0];const codes=verifyReadbacks(baseline,events,c).problems.map(x=>x.code);for(const code of ['WRONG_BLOB','MISSING_PATH','GIT_SHA_METADATA'])assert.ok(codes.includes(code));});
 test('missing readback and duplicate import are caught',()=>{const c=captured();c.records.pop();const r=verifyReadbacks(baseline,[...events,events[0]],c);assert.ok(r.problems.some(x=>x.code==='MISSING_MUSE_READBACK'));assert.ok(r.problems.some(x=>x.code==='DUPLICATE_OR_INVALID_IMPORT'));});
 test('bad NDJSON input fails closed',()=>{assert.throws(()=>eventsFromNDJSON('bad\n'),SyntaxError);assert.throws(()=>eventsFromNDJSON('x'.repeat(1024*1024+1)),/Oversized/);});
+
+
+test('bare 64-hex commit, parent, snapshot and blob IDs match prefixed import receipts', () => {
+  const c = captured();
+  const bare = value => typeof value === 'string' ? value.replace(/^sha256:/, '') : value;
+  for (const row of c.records) {
+    row.muse_commit_id = bare(row.muse_commit_id);
+    row.commit.commit_id = bare(row.commit.commit_id);
+    row.commit.snapshot_id = bare(row.commit.snapshot_id);
+    row.commit.parent_commit_id = bare(row.commit.parent_commit_id);
+    row.commit.parent2_commit_id = bare(row.commit.parent2_commit_id);
+    row.snapshot.snapshot_id = bare(row.snapshot.snapshot_id);
+    row.snapshot.manifest = Object.fromEntries(Object.entries(row.snapshot.manifest).map(([p, v]) => [p, bare(v)]));
+  }
+  const r = verifyReadbacks(baseline, events, c);
+  assert.equal(r.status, 'PASS_DAG_AND_HISTORICAL_BLOBS_ONLY', JSON.stringify(r.problems));
+});
+
+test('invalid parent ID cannot masquerade as an absent root parent', () => {
+  const c = captured();
+  c.records[0].commit.parent_commit_id = 'not-a-valid-muse-id';
+  const r = verifyReadbacks(baseline, events, c);
+  assert.ok(r.problems.some(x => x.code === 'PARENT_DAG'));
+});
