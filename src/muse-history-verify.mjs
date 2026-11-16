@@ -5,7 +5,13 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 const gitRe = /^[a-f0-9]{40}$/;
-const museRe = /^sha256:[a-f0-9]{64}$/;
+const museRe = /^(?:sha256:)?[a-f0-9]{64}$/;
+function bareMuseId(value) { return typeof value === 'string' && museRe.test(value) ? value.replace(/^sha256:/, '') : null; }
+function sameMuseId(a, b) {
+  if (a == null || b == null) return a == null && b == null;
+  const aId = bareMuseId(a);
+  return aId !== null && aId === bareMuseId(b);
+}
 const MAX = 1024 * 1024;
 function loaded(file) {
   const stat = fs.statSync(file);
@@ -17,7 +23,9 @@ export function eventsFromNDJSON(text) {
   return text.trim().split(/\r?\n/).map(line => JSON.parse(line));
 }
 function readMuse(cwd, command, arg) {
-  const args = command === '--version' ? ['--version'] : [command, arg, '--format', 'json'];
+  // Plumbing commands emit JSON by default in Muse 0.2.2rc9; --format json is not supported.
+  // Accept prefixed import receipt IDs but pass the documented bare 64-hex ID.
+  const args = command === '--version' ? ['--version'] : [command, bareMuseId(arg) ?? arg];
   const r = spawnSync('muse', args, { cwd, encoding: 'utf8', timeout: 15000, maxBuffer: MAX, windowsHide: true, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
   if (r.error || r.status !== 0) throw new Error('Muse read-only ' + command + ' failed: ' + (r.stderr || r.error?.message || '').slice(0, 240));
   return command === '--version' ? r.stdout.trim() : JSON.parse(r.stdout);
@@ -46,35 +54,35 @@ export function verifyReadbacks(baseline, events, capture) {
   }
   const mapping = new Map(), usedMuse = new Set();
   for (const e of events.filter(e => e.event === 'commit')) {
-    if (!gitRe.test(e.git_sha) || !museRe.test(e.muse_commit_id) || mapping.has(e.git_sha) || usedMuse.has(e.muse_commit_id)) {
+    if (!gitRe.test(e.git_sha) || !museRe.test(e.muse_commit_id) || mapping.has(e.git_sha) || usedMuse.has(bareMuseId(e.muse_commit_id))) {
       problems.push({ code: 'DUPLICATE_OR_INVALID_IMPORT', gitSha: e.git_sha }); continue;
     }
-    mapping.set(e.git_sha, e.muse_commit_id); usedMuse.add(e.muse_commit_id);
+    mapping.set(e.git_sha, e.muse_commit_id); usedMuse.add(bareMuseId(e.muse_commit_id));
     if (!git.has(e.git_sha)) problems.push({ code: 'UNEXPECTED_IMPORT', gitSha: e.git_sha });
   }
   const done = events.filter(e => e.event === 'done');
   if (done.length !== 1 || done[0].total_commits_written !== git.size || done[0].dry_run !== false) problems.push({ code: 'INCOMPLETE_IMPORT_RECEIPT' });
   const captures = new Map();
   for (const item of capture.records) {
-    if (!museRe.test(item?.muse_commit_id) || captures.has(item.muse_commit_id)) { problems.push({ code: 'INVALID_OR_DUPLICATE_READBACK' }); continue; }
-    captures.set(item.muse_commit_id, item);
+    if (!museRe.test(item?.muse_commit_id) || captures.has(bareMuseId(item.muse_commit_id))) { problems.push({ code: 'INVALID_OR_DUPLICATE_READBACK' }); continue; }
+    captures.set(bareMuseId(item.muse_commit_id), item);
   }
   const checked = [];
   for (const c of baseline.commits) {
-    const id = mapping.get(c.gitSha), row = captures.get(id);
+    const id = mapping.get(c.gitSha), row = captures.get(bareMuseId(id));
     if (!row?.commit || !row?.snapshot) { problems.push({ code: 'MISSING_MUSE_READBACK', gitSha: c.gitSha }); continue; }
     const m = row.commit, s = row.snapshot;
-    if (m.commit_id !== id) problems.push({ code: 'COMMIT_ID', gitSha: c.gitSha });
+    if (!sameMuseId(m.commit_id, id)) problems.push({ code: 'COMMIT_ID', gitSha: c.gitSha });
     if (m.metadata?.git_sha !== c.gitSha) problems.push({ code: 'GIT_SHA_METADATA', gitSha: c.gitSha, actual: m.metadata?.git_sha ?? null });
     const parents = c.parents.map(p => mapping.get(p));
     const actual = [m.parent_commit_id ?? null, m.parent2_commit_id ?? null];
-    if (parents.some(x => !x) || (parents[0] ?? null) !== actual[0] || (parents[1] ?? null) !== actual[1]) problems.push({ code: 'PARENT_DAG', gitSha: c.gitSha, expected: parents, actual });
-    if (!museRe.test(m.snapshot_id) || s.snapshot_id !== m.snapshot_id || !s.manifest || typeof s.manifest !== 'object' || Array.isArray(s.manifest)) { problems.push({ code: 'SNAPSHOT_SCHEMA', gitSha: c.gitSha }); continue; }
+    if (c.parents.length > 2 || parents.some(x => !x) || !sameMuseId(parents[0] ?? null, actual[0]) || !sameMuseId(parents[1] ?? null, actual[1])) problems.push({ code: 'PARENT_DAG', gitSha: c.gitSha, expected: parents, actual });
+    if (!museRe.test(m.snapshot_id) || !sameMuseId(s.snapshot_id, m.snapshot_id) || !s.manifest || typeof s.manifest !== 'object' || Array.isArray(s.manifest)) { problems.push({ code: 'SNAPSHOT_SCHEMA', gitSha: c.gitSha }); continue; }
     const wanted = new Map(c.files.map(f => [f.path, 'sha256:' + f.sha256]));
     if (wanted.size !== c.files.length) throw new Error('Duplicate Git snapshot paths');
     for (const [p, hash] of wanted) {
       if (!Object.hasOwn(s.manifest, p)) problems.push({ code: 'MISSING_PATH', gitSha: c.gitSha, path: p });
-      else if (s.manifest[p] !== hash) problems.push({ code: 'WRONG_BLOB', gitSha: c.gitSha, path: p, expected: hash, actual: s.manifest[p] });
+      else if (!sameMuseId(s.manifest[p], hash)) problems.push({ code: 'WRONG_BLOB', gitSha: c.gitSha, path: p, expected: hash, actual: s.manifest[p] });
     }
     for (const p of Object.keys(s.manifest)) if (!wanted.has(p)) problems.push({ code: 'EXTRA_PATH', gitSha: c.gitSha, path: p });
     checked.push({ gitSha: c.gitSha, museCommitId: id, parentsExpected: parents, parentsObserved: actual, executableModeUnverified: c.files.filter(f => f.mode === '100755').map(f => f.path) });
