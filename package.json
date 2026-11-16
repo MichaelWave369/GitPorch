@@ -58,7 +58,8 @@
     "frontend:serve": "node src/homenode-cli.mjs frontend-serve",
     "muse:pilot": "node src/muse-bridge-pilot.mjs",
     "muse:audit": "node src/muse-bridge-snapshot-audit.mjs",
-    "muse:status-audit": "node src/muse-bridge-status-audit.mjs"
+    "muse:status-audit": "node src/muse-bridge-status-audit.mjs",
+    "muse:history-baseline": "node src/muse-bridge-history-baseline.mjs"
   },
   "license": "MIT"
 }
