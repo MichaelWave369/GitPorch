@@ -1,5 +1,9 @@
 # The GitPorch
 
+## Muse bridge R0.4 historical Git baseline (read-only)
+
+A bounded synthetic-fixture auditor records Git commit parent graphs and **every historical tracked tree**, not just a final snapshot. This provides independent Git-side evidence for a later controlled Muse import-fidelity comparison. No Muse CLI is installed or executed, and no live integration is claimed. Use `npm run muse:history-baseline --`; see [the R0.4 operator guide](docs/MUSE_BRIDGE_R04_HISTORY_BASELINE.md).
+
 ## Muse bridge R0.3 status-receipt verification (read-only)
 
 After a separately approved Muse Git round-trip against disposable repositories, verify
