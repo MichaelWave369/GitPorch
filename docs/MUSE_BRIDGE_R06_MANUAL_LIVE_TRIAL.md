@@ -14,6 +14,8 @@ Upstream references: https://musehub.ai/muse/getting-started and https://staging
 - Job permissions: contents: read. Git checkout does not retain credentials. No repository secrets are passed. The ephemeral Actions job still has its ordinary limited token.
 - Installer is downloaded via HTTPS to runner temporary storage, checked for shell syntax and matched byte-for-byte to the operator-supplied SHA-256 before execution. It is NOT piped blindly into a shell.
 - Python 3.14 and Node 22 are set up on an Ubuntu runner. Muse uses runner-temp-only venv and install locations.
+- The installer and subsequent Muse CLI run share a **new runner-temp-only HOME**, with XDG config/data/cache paths set inside it. The script refuses to start if that disposable HOME is absent; this reduces accidental reuse of identity, keys, or local configuration from the runner's default home.
+- The smoke script records its most recent stage in `run-stage.txt` and, for caught command failures, the failed stage and exit code in `runner-error.txt`. These are synthetic-only logs and do not replace the Git/Muse evidence checks.
 - Source and mirror Git repositories are synthetic, in a new runner-temp directory, and have no Git remotes. Git export always includes --no-push.
 - The script never invokes Muse push or hub push, and refuses an existing test directory. A failed test cannot authorize production changes.
 - An installer SHA-256 pin alone does NOT pin the Muse source distribution or transitive wheels. Treat the remote installer and its package dependencies as third-party code, not as formally attested or sandbox-secure.
