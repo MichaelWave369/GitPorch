@@ -1,5 +1,9 @@
 # The GitPorch
 
+## Muse bridge R0.7 internal DAG and historical blob comparison (manual only)
+
+The first **real** R0.6 Muse 0.2.2rc9 Git → Muse → Git trial [passed](https://github.com/MichaelWave369/GitPorch/actions/runs/43968439939): six imported commits and matching final exported Git snapshot. **Internal Muse ancestry and historical snapshots were not inspected in that run.** R0.7 extends the existing manually dispatched workflow with read-only `muse read-commit`/`muse read-snapshot` comparisons against each original Git commit, including both merge parents. Six local fake-readback unit tests cover regression detection; they do **not** establish a live R0.7 pass. See [the R0.7 guide](docs/MUSE_BRIDGE_R07_INTERNAL_FIDELITY.md). No production repositories or automatic triggers.
+
 ## Muse bridge R0.6 manual live CLI trial (opt-in only)
 
 The first proposed **real Muse CLI** smoke test uses a freshly created, ephemeral GitHub Actions runner, disposable Git/Muse repositories, a reviewed SHA-256 pinned installer and explicit `--no-push`. It is **never triggered automatically**. See [the R0.6 operator guide](docs/MUSE_BRIDGE_R06_MANUAL_LIVE_TRIAL.md) and the manually dispatched `Muse Disposable Live Bridge Trial` workflow. No live Muse run is claimed until someone dispatches it and reviews the results.

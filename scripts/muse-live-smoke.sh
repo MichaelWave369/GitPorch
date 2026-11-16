@@ -74,6 +74,12 @@ mkdir -m 700 "$ROOT/muse"
   stage muse_checkout
   muse checkout --force main > "$ROOT/muse-checkout.log" 2>&1
 )
+# R0.7 reads Muse's *stored* commits and historical snapshots, not merely
+# the import progress lines. This check is read-only. Preserve failure details,
+# then continue the export so one mismatch does not conceal other evidence.
+r07_failed=0
+stage muse_internal_history_audit
+node src/muse-history-verify.mjs capture "$ROOT/git-history-baseline.json" "$ROOT/muse-import.log" "$ROOT/muse" > "$ROOT/muse-internal-history-audit.json" 2> "$ROOT/muse-internal-history-audit.err" || r07_failed=1
 # A separate, newly-created mirror with no Git remote. The first export's
 # ancestry is not a reconstruction of the original Git history.
 stage mirror_init
@@ -97,11 +103,13 @@ fi
 # Do not let one failed gate conceal results from the other two.
 stage evidence_audits
 fail=0
+if [[ "$r07_failed" -ne 0 ]]; then fail=1; fi
 node src/muse-bridge-snapshot-audit.mjs "$ROOT/source" "$ROOT/mirror" > "$ROOT/snapshot-audit.json" 2> "$ROOT/snapshot-audit.err" || fail=1
 node src/muse-bridge-status-audit.mjs "$ROOT/source" "$ROOT/mirror" "$ROOT/muse-status.json" > "$ROOT/status-audit.json" 2> "$ROOT/status-audit.err" || fail=1
 node src/muse-bridge-evidence-packet.mjs "$ROOT/source" "$ROOT/mirror" "$ROOT/muse-status.json" "$ROOT/muse-version.txt" "$ROOT/muse-import.log" "$ROOT/muse-export.log" > "$ROOT/evidence-packet.json" 2> "$ROOT/evidence-packet.err" || fail=1
-printf 'git_audits_failed=%s\nreal_muse_used=true\nhuman_review_required=true\n' "$fail" > "$ROOT/run-summary.txt"
+printf 'evidence_checks_failed=%s\nreal_muse_used=true\nhuman_review_required=true\n' "$fail" > "$ROOT/run-summary.txt"
 if [[ "$fail" -ne 0 ]]; then
+  stage blocked
   echo 'One or more evidence gates failed; see uploaded synthetic logs.' >&2
   exit 1
 fi

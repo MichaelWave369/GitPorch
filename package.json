@@ -60,7 +60,8 @@
     "muse:audit": "node src/muse-bridge-snapshot-audit.mjs",
     "muse:status-audit": "node src/muse-bridge-status-audit.mjs",
     "muse:history-baseline": "node src/muse-bridge-history-baseline.mjs",
-    "muse:evidence-packet": "node src/muse-bridge-evidence-packet.mjs"
+    "muse:evidence-packet": "node src/muse-bridge-evidence-packet.mjs",
+    "muse:history-verify": "node src/muse-history-verify.mjs"
   },
   "license": "MIT"
 }
