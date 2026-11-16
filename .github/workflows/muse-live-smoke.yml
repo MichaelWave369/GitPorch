@@ -56,12 +56,26 @@ jobs:
         run: |
           set -Eeuo pipefail
           mkdir -p "$RUNNER_TEMP/muse-bin"
+          # Do not inherit any runner home/config/identity into the Muse installer.
+          mkdir -p "$RUNNER_TEMP/muse-home"
+          chmod 700 "$RUNNER_TEMP/muse-home"
+          export HOME="$RUNNER_TEMP/muse-home"
+          export XDG_DATA_HOME="$HOME/.local/share"
+          export XDG_CONFIG_HOME="$HOME/.config"
+          export XDG_CACHE_HOME="$HOME/.cache"
+          export PIP_CACHE_DIR="$XDG_CACHE_HOME/pip"
           MUSE_PROFILE=slim MUSE_VENV_DIR="$RUNNER_TEMP/muse-venv" MUSE_INSTALL_DIR="$RUNNER_TEMP/muse-bin" sh "$RUNNER_TEMP/muse-install.sh"
           "$RUNNER_TEMP/muse-bin/muse" --version
       - name: Run isolated source-import-export audit (never push)
         shell: bash
         run: |
           set -Eeuo pipefail
+          # Inherit the same disposable Muse identity/config universe used at install.
+          export HOME="$RUNNER_TEMP/muse-home"
+          export XDG_DATA_HOME="$HOME/.local/share"
+          export XDG_CONFIG_HOME="$HOME/.config"
+          export XDG_CACHE_HOME="$HOME/.cache"
+          export PIP_CACHE_DIR="$XDG_CACHE_HOME/pip"
           export PATH="$RUNNER_TEMP/muse-bin:$PATH"
           bash scripts/muse-live-smoke.sh
       - name: Preserve synthetic evidence for review, even on failure
