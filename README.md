@@ -1,5 +1,9 @@
 # The GitPorch
 
+## Muse bridge R0.5 evidence packet (read-only)
+
+Combines the Git snapshot, sync-receipt and history-baseline checks while hashing operator-supplied Muse CLI logs. Even a complete packet requires human review and is **not** proof that Muse imported history faithfully. No Muse CLI runs or production repos are touched. Use `npm run muse:evidence-packet --`; see [the R0.5 guide](docs/MUSE_BRIDGE_R05_EVIDENCE_PACKET.md).
+
 ## Muse bridge R0.4 historical Git baseline (read-only)
 
 A bounded synthetic-fixture auditor records Git commit parent graphs and **every historical tracked tree**, not just a final snapshot. This provides independent Git-side evidence for a later controlled Muse import-fidelity comparison. No Muse CLI is installed or executed, and no live integration is claimed. Use `npm run muse:history-baseline --`; see [the R0.4 operator guide](docs/MUSE_BRIDGE_R04_HISTORY_BASELINE.md).

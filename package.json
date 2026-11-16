@@ -59,7 +59,8 @@
     "muse:pilot": "node src/muse-bridge-pilot.mjs",
     "muse:audit": "node src/muse-bridge-snapshot-audit.mjs",
     "muse:status-audit": "node src/muse-bridge-status-audit.mjs",
-    "muse:history-baseline": "node src/muse-bridge-history-baseline.mjs"
+    "muse:history-baseline": "node src/muse-bridge-history-baseline.mjs",
+    "muse:evidence-packet": "node src/muse-bridge-evidence-packet.mjs"
   },
   "license": "MIT"
 }
