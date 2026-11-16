@@ -1,5 +1,9 @@
 # The GitPorch
 
+## Muse bridge R0.6 manual live CLI trial (opt-in only)
+
+The first proposed **real Muse CLI** smoke test uses a freshly created, ephemeral GitHub Actions runner, disposable Git/Muse repositories, a reviewed SHA-256 pinned installer and explicit `--no-push`. It is **never triggered automatically**. See [the R0.6 operator guide](docs/MUSE_BRIDGE_R06_MANUAL_LIVE_TRIAL.md) and the manually dispatched `Muse Disposable Live Bridge Trial` workflow. No live Muse run is claimed until someone dispatches it and reviews the results.
+
 ## Muse bridge R0.5 evidence packet (read-only)
 
 Combines the Git snapshot, sync-receipt and history-baseline checks while hashing operator-supplied Muse CLI logs. Even a complete packet requires human review and is **not** proof that Muse imported history faithfully. No Muse CLI runs or production repos are touched. Use `npm run muse:evidence-packet --`; see [the R0.5 guide](docs/MUSE_BRIDGE_R05_EVIDENCE_PACKET.md).
