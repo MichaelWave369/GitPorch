@@ -7,6 +7,10 @@ on:
         description: 'Type RUN_DISPOSABLE_MUSE_TEST to authorize an isolated, no-push trial'
         required: true
         type: string
+      installer_sha256:
+        description: 'SHA-256 of install.sh independently reviewed by the operator'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -18,6 +22,7 @@ jobs:
     timeout-minutes: 20
     env:
       MUSE_DISPOSABLE_APPROVED: ${{ inputs.disposable_approval }}
+      MUSE_INSTALLER_SHA256: ${{ inputs.installer_sha256 }}
     steps:
       - name: Checkout reviewed GitPorch source without stored credentials
         uses: actions/checkout@v4
@@ -39,6 +44,11 @@ jobs:
           set -Eeuo pipefail
           curl --proto '=https' --tlsv1.2 -fLsS --retry 2 --max-time 60 'https://musehub.ai/install.sh' -o "$RUNNER_TEMP/muse-install.sh"
           sh -n "$RUNNER_TEMP/muse-install.sh"
+          if [[ ! "$MUSE_INSTALLER_SHA256" =~ ^[a-fA-F0-9]{64}$ ]]; then
+            echo 'Invalid operator-provided SHA-256; refusing installer execution.' >&2
+            exit 2
+          fi
+          printf '%s  %s\n' "$MUSE_INSTALLER_SHA256" "$RUNNER_TEMP/muse-install.sh" | sha256sum --check --status
           sha256sum "$RUNNER_TEMP/muse-install.sh" | tee "$RUNNER_TEMP/muse-installer-sha256.txt"
           echo 'Installer is dynamic upstream code. This opt-in trial runs it only in an ephemeral runner with read-only token permissions.'
       - name: Install Muse in runner temporary environment
