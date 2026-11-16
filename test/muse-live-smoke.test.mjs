@@ -75,7 +75,7 @@ test('R0.6 refuses approved-looking invocation with nonisolated HOME', t => {
   const mockBin = path.join(tmp, 'bin');
   fs.mkdirSync(mockBin);
   const fakeMuse = path.join(mockBin, 'muse');
-  fs.writeFileSync(fakeMuse, '#!/bin/sh\\nexit 0\\n');
+  fs.writeFileSync(fakeMuse, '#!/bin/sh\nexit 0\n');
   fs.chmodSync(fakeMuse, 0o755);
   const env = {
     ...process.env,
