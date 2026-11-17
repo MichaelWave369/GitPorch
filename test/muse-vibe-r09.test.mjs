@@ -127,6 +127,26 @@ test('R0.9 invalid approval reports FAILED preflight instead of silently skippin
   assert.match(workflow, /exit 2/);
 });
 
+test('R0.9 preserves public Vibe evidence artifact paths and diagnoses failed gates visibly', () => {
+  const workflow = fs.readFileSync(new URL('../.github/workflows/muse-vibe-pilot.yml', import.meta.url), 'utf8');
+  const script = fs.readFileSync(new URL('../scripts/muse-live-vibe.sh', import.meta.url), 'utf8');
+  assert.ok(!workflow.includes('${{ runner.temp }}}/'), 'stray brace prevents artifact uploads');
+  for (const suffix of [
+    'muse-installer-sha256.txt',
+    'gitporch-muse-vibe-r09/*.json',
+    'gitporch-muse-vibe-r09/*.txt',
+    'gitporch-muse-vibe-r09/*.log',
+    'gitporch-muse-vibe-r09/*.err',
+  ]) {
+    assert.ok(workflow.includes('${{ runner.temp }}/' + suffix), 'missing correct artifact path for ' + suffix);
+  }
+  assert.match(workflow, /if: always\(\)/);
+  assert.match(workflow, /if-no-files-found: error/);
+  assert.match(script, /failed_stage=%s/);
+  assert.match(script, /for label in muse-internal-history-audit snapshot-audit status-audit evidence-packet/);
+  assert.match(script, /R0\.9 diagnostic/);
+  assert.match(script, /head -c 1200/);
+});
 test('R0.9 Bash syntax and manual-approval guards', t => {
   const script = fileURLToPath(new URL('../scripts/muse-live-vibe.sh', import.meta.url));
   const check = spawnSync('bash', ['-n', script], { encoding: 'utf8' });
