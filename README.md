@@ -1,5 +1,27 @@
 # The GitPorch
 
+## Muse bridge R0.9: REAL public Vibe historical Git pilot (manual-only, in review)
+
+R0.9 introduces a read-only, pinned-SHA slice planner and a **separately approved**
+GitHub Actions workflow for importing a bounded, **authentic historical ancestor
+of [Vibe](https://github.com/MichaelWave369/Vibe)** into a fresh, disposable
+Muse repository. It checks every reachable original Git commit and blob in
+the selected slice using our existing R0.7 readbacks, and exports only to a
+different no-remote Git mirror with explicit --no-push.
+
+A historical slice can predate Vibe's current main and is **NOT** a semantic
+Vibe-aware merge test or live MuseHub connection. The workflow is manual-only,
+requires an exact pinned Git SHA plus a separately reviewed installer hash,
+and aborts on missing eligible .vibe source, changed upstream main, unsupported
+history limits or any independent fidelity mismatch. This PR has **not**
+performed the live Vibe trial. See [R0.9 scope and operator runbook](docs/MUSE_BRIDGE_R09_VIBE_PILOT.md).
+
+Offline read-only preflight for an already obtained Vibe clone:
+~~~
+npm run muse:vibe-plan -- inspect <absolute-path-to-Vibe> <reviewed-main-40hex>
+~~~
+
+
 ## Muse bridge R0.8 · read-only local evidence shelf (operator opt-in)
 
 Our **actual Muse 0.2.2rc9** disposable [R0.7 live trial #6 passed](https://github.com/MichaelWave369/GitPorch/actions/runs/43997723043), including six imported Git commits, merge-parent DAG, historical file paths and stored raw bytes, final Git export and saved zero-drift checks. This is a **bounded synthetic-fixture pass**, not proof of production MuseHub sync.
