@@ -1,0 +1,99 @@
+name: Muse × Vibe R0.9 Real Git History Pilot (manual only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      disposable_approval:
+        description: 'Type RUN_DISPOSABLE_VIBE_MUSE_TEST; runs only on an ephemeral no-push runner'
+        required: true
+        type: string
+      vibe_main_sha:
+        description: 'Exact reviewed 40-hex SHA of the PUBLIC MichaelWave369/Vibe main tip'
+        required: true
+        type: string
+      installer_sha256:
+        description: 'SHA-256 of the independently inspected Muse install.sh'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-real-vibe:
+    if: ${{ inputs.disposable_approval == 'RUN_DISPOSABLE_VIBE_MUSE_TEST' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MUSE_VIBE_APPROVED: ${{ inputs.disposable_approval }}
+      VIBE_PINNED_SHA: ${{ inputs.vibe_main_sha }}
+      MUSE_INSTALLER_SHA256: ${{ inputs.installer_sha256 }}
+    steps:
+      - name: Checkout reviewed GitPorch source without stored credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Set up isolated Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - name: Check GitPorch tests before reading public Vibe
+        run: npm test
+      - name: Clone only pinned public Vibe and preflight a complete ancestral slice
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash scripts/muse-live-vibe.sh prepare
+      - name: Download reviewed Muse installer without executing it
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if [[ ! "$MUSE_INSTALLER_SHA256" =~ ^[a-fA-F0-9]{64}$ ]]; then
+            echo 'Invalid operator installer SHA; refusing installer.' >&2
+            exit 2
+          fi
+          curl --proto '=https' --tlsv1.2 -fLsS --retry 2 --max-time 60 'https://musehub.ai/install.sh' -o "$RUNNER_TEMP/muse-install.sh"
+          sh -n "$RUNNER_TEMP/muse-install.sh"
+          printf '%s  %s\n' "$MUSE_INSTALLER_SHA256" "$RUNNER_TEMP/muse-install.sh" | sha256sum --check --status
+          sha256sum "$RUNNER_TEMP/muse-install.sh" > "$RUNNER_TEMP/muse-installer-sha256.txt"
+      - name: Install Muse in isolated ephemeral runner environment
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -m 700 "$RUNNER_TEMP/muse-home"
+          mkdir -p "$RUNNER_TEMP/muse-bin"
+          export HOME="$RUNNER_TEMP/muse-home"
+          export XDG_DATA_HOME="$HOME/.local/share"
+          export XDG_CONFIG_HOME="$HOME/.config"
+          export XDG_CACHE_HOME="$HOME/.cache"
+          export PIP_CACHE_DIR="$XDG_CACHE_HOME/pip"
+          MUSE_PROFILE=slim MUSE_VENV_DIR="$RUNNER_TEMP/muse-venv" MUSE_INSTALL_DIR="$RUNNER_TEMP/muse-bin" sh "$RUNNER_TEMP/muse-install.sh"
+          "$RUNNER_TEMP/muse-bin/muse" --version
+      - name: Read back actual Vibe DAG and blobs and export to no-push Git mirror
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          export HOME="$RUNNER_TEMP/muse-home"
+          export XDG_DATA_HOME="$HOME/.local/share"
+          export XDG_CONFIG_HOME="$HOME/.config"
+          export XDG_CACHE_HOME="$HOME/.cache"
+          export PIP_CACHE_DIR="$XDG_CACHE_HOME/pip"
+          export PATH="$RUNNER_TEMP/muse-bin:$PATH"
+          bash scripts/muse-live-vibe.sh run
+      - name: Preserve PUBLIC Vibe pilot evidence on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: muse-gitporch-r09-public-vibe-evidence
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}}/muse-installer-sha256.txt
+            ${{ runner.temp }}}/gitporch-muse-vibe-r09/*.json
+            ${{ runner.temp }}}/gitporch-muse-vibe-r09/*.txt
+            ${{ runner.temp }}}/gitporch-muse-vibe-r09/*.log
+            ${{ runner.temp }}}/gitporch-muse-vibe-r09/*.err

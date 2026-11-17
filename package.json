@@ -62,6 +62,7 @@
     "muse:history-baseline": "node src/muse-bridge-history-baseline.mjs",
     "muse:evidence-packet": "node src/muse-bridge-evidence-packet.mjs",
     "muse:history-verify": "node src/muse-history-verify.mjs",
+    "muse:vibe-plan": "node src/muse-vibe-slice.mjs",
     "muse:bridge-status": "node src/muse-bridge-status-cli.mjs"
   },
   "license": "MIT"
