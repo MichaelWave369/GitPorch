@@ -4,9 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       disposable_approval:
-        description: 'Type RUN_DISPOSABLE_VIBE_MUSE_TEST; runs only on an ephemeral no-push runner'
+        description: 'Select RUN_DISPOSABLE_VIBE_MUSE_TEST to explicitly authorize this disposable no-push trial'
         required: true
-        type: string
+        type: choice
+        default: DO_NOT_RUN
+        options:
+          - DO_NOT_RUN
+          - RUN_DISPOSABLE_VIBE_MUSE_TEST
       vibe_main_sha:
         description: 'Exact reviewed 40-hex SHA of the PUBLIC MichaelWave369/Vibe main tip'
         required: true
@@ -21,7 +25,6 @@ permissions:
 
 jobs:
   disposable-real-vibe:
-    if: ${{ inputs.disposable_approval == 'RUN_DISPOSABLE_VIBE_MUSE_TEST' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -29,6 +32,23 @@ jobs:
       VIBE_PINNED_SHA: ${{ inputs.vibe_main_sha }}
       MUSE_INSTALLER_SHA256: ${{ inputs.installer_sha256 }}
     steps:
+      - name: Validate operator approval and both pinned IDs before any checkout or download
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if [[ "${MUSE_VIBE_APPROVED:-}" != "RUN_DISPOSABLE_VIBE_MUSE_TEST" ]]; then
+            echo "::error title=R0.9 approval required::Select RUN_DISPOSABLE_VIBE_MUSE_TEST in the disposable_approval dropdown. Nothing was downloaded or executed."
+            exit 2
+          fi
+          if [[ ! "${VIBE_PINNED_SHA:-}" =~ ^[a-f0-9]{40}$ ]]; then
+            echo "::error title=Invalid Vibe commit pin::Supply the reviewed 40-character lowercase Git SHA of public Vibe main."
+            exit 2
+          fi
+          if [[ ! "${MUSE_INSTALLER_SHA256:-}" =~ ^[A-Fa-f0-9]{64}$ ]]; then
+            echo "::error title=Invalid Muse installer pin::Supply the independently reviewed 64-character SHA-256 of musehub.ai/install.sh."
+            exit 2
+          fi
+          echo "Explicit R0.9 approval and input formats verified. Pinned source and installer still require byte-for-byte verification."
       - name: Checkout reviewed GitPorch source without stored credentials
         uses: actions/checkout@v4
         with:

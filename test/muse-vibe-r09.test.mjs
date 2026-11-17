@@ -109,6 +109,24 @@ test('R0.9 manual workflow is fixed-public-source, review-pinned, token-minimal 
   assert.doesNotMatch(script, /git\s+submodule\s+update|npm install|pip install/m);
 });
 
+test('R0.9 invalid approval reports FAILED preflight instead of silently skipping the entire job', () => {
+  const workflow = fs.readFileSync(new URL('../.github/workflows/muse-vibe-pilot.yml', import.meta.url), 'utf8');
+  assert.match(workflow, /disposable_approval:\s*\n\s+description:[^\n]*\n\s+required: true\n\s+type: choice\n\s+default: DO_NOT_RUN\n\s+options:\n\s+- DO_NOT_RUN\n\s+- RUN_DISPOSABLE_VIBE_MUSE_TEST/);
+  assert.doesNotMatch(workflow, /^\s{4}if:.*inputs\.disposable_approval/m,
+    'a top-level job if silently skips everything and prevents useful diagnostics');
+  const guard = workflow.indexOf('name: Validate operator approval and both pinned IDs');
+  const checkout = workflow.indexOf('name: Checkout reviewed GitPorch source');
+  const clone = workflow.indexOf('name: Clone only pinned public Vibe');
+  const download = workflow.indexOf('name: Download reviewed Muse installer');
+  assert.ok(guard > 0 && checkout > guard && clone > checkout && download > clone,
+    'approval preflight must run before any checkout, third-party installer or public clone');
+  assert.match(workflow, /if \[\[ "\$\{MUSE_VIBE_APPROVED:-\}" != "RUN_DISPOSABLE_VIBE_MUSE_TEST" \]\]; then/);
+  assert.match(workflow, /::error title=R0\.9 approval required::/);
+  assert.match(workflow, /\$\{VIBE_PINNED_SHA:-\}.*\^\[a-f0-9\]\{40\}/);
+  assert.match(workflow, /\$\{MUSE_INSTALLER_SHA256:-\}.*\^\[A-Fa-f0-9\]\{64\}/);
+  assert.match(workflow, /exit 2/);
+});
+
 test('R0.9 Bash syntax and manual-approval guards', t => {
   const script = fileURLToPath(new URL('../scripts/muse-live-vibe.sh', import.meta.url));
   const check = spawnSync('bash', ['-n', script], { encoding: 'utf8' });
