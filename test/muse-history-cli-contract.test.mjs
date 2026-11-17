@@ -19,19 +19,20 @@ function fixture(t) {
   fs.mkdirSync(muse);
   fs.mkdirSync(path.join(muse, '.muse'));
   const trace = path.join(root, 'calls.log');
-  // Fake *strict* Muse 0.2.2rc9 plumbing CLI: default output is JSON and
-  // --format json fails as in actual workflow run #43976504464.
+  // Strict fake CLI contract grounded in actual live failures: #43976504464
+  // rejected --format json; #43986428104 rejected bare IDs. Prefixed IDs
+  // are required for both read-commit and read-snapshot.
   const fake = [
     '#!/usr/bin/env node',
     "const fs = require('node:fs');",
     "const argv = process.argv.slice(2);",
     "fs.appendFileSync(process.env.MUSE_CALL_TRACE, JSON.stringify(argv) + '\\n');",
     "if (argv.length === 1 && argv[0] === '--version') { console.log('muse 0.2.2rc9'); process.exit(0); }",
-    "if (argv.length !== 2 || !/^[a-f0-9]{64}$/.test(argv[1])) { console.error('muse: error: unrecognized arguments'); process.exit(2); }",
-    "if (argv[0] === 'read-commit' && argv[1] === " + JSON.stringify(commitId) + ") {",
+    "if (argv.length !== 2 || !/^sha256:[a-f0-9]{64}$/.test(argv[1])) { console.error('Invalid commit reference: use canonical sha256:<hex>'); process.exit(2); }",
+    "if (argv[0] === 'read-commit' && argv[1] === " + JSON.stringify('sha256:' + commitId) + ") {",
     " console.log(JSON.stringify({commit_id:" + JSON.stringify(commitId) + ",metadata:{git_sha:" + JSON.stringify(gitSha) + "},parent_commit_id:null,parent2_commit_id:null,snapshot_id:" + JSON.stringify(snapshotId) + "})); process.exit(0);",
     "}",
-    "if (argv[0] === 'read-snapshot' && argv[1] === " + JSON.stringify(snapshotId) + ") {",
+    "if (argv[0] === 'read-snapshot' && argv[1] === " + JSON.stringify('sha256:' + snapshotId) + ") {",
     " console.log(JSON.stringify({snapshot_id:'sha256:" + snapshotId + "',manifest:{'README.md':" + JSON.stringify(objectId) + "}})); process.exit(0);",
     "}",
     "process.exit(3);"
@@ -61,7 +62,7 @@ function source() {
   return { baseline, events };
 }
 
-test('R0.7 actual CLI contract: default JSON, bare CLI IDs, prefixed receipt IDs, bare manifest hashes', t => {
+test('R0.7 live CLI contract: canonical CLI IDs, default JSON, bare readback IDs, prefixed import IDs', t => {
   const f = fixture(t);
   const { baseline, events } = source();
   const got = captureReadbacks(f.muse, events);
@@ -70,7 +71,7 @@ test('R0.7 actual CLI contract: default JSON, bare CLI IDs, prefixed receipt IDs
   assert.equal(verifyReadbacks(baseline, events, got).status, 'PASS_DAG_AND_HISTORICAL_BLOBS_ONLY');
   const calls = fs.readFileSync(f.trace, 'utf8').trim().split('\n').map(JSON.parse);
   assert.deepEqual(calls, [
-    ['read-commit', commitId], ['read-snapshot', snapshotId], ['--version']
+    ['read-commit', 'sha256:' + commitId], ['read-snapshot', 'sha256:' + snapshotId], ['--version']
   ]);
 });
 

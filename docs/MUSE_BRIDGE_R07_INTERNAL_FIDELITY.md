@@ -2,6 +2,21 @@
 
 **This adds a new read-only audit to the manually dispatched disposable Muse trial. It has NOT yet been executed against the real Muse CLI.**
 
+## R0.7 live run #3: canonical Muse ID requirement (GitPorch harness bug)
+
+[GitHub Actions run #43986428104](https://github.com/MichaelWave369/GitPorch/actions/runs/43986428104) also failed **only in our R0.7 checker**. Its uploaded `muse-internal-history-audit.err` shows:
+
+```text
+[Muse R0.7] Muse read-only read-commit failed:
+{"error": "Invalid commit reference '768472d58d0b858ba816ef09b1572734549128a094409e9d2836b7741ba615a8': use the canonical 'sha256:<hex>' form. Bare hex IDs are not accepted."}
+```
+
+We mistakenly stripped `sha256:` from CLI arguments in the fix for run #2. The actual **Muse 0.2.2rc9** implementation demands a canonical `sha256:<64hex>` argument, even though some older reference examples show bare IDs. We now normalize IDs **only when comparing values**, and always supply prefixed IDs to `muse read-commit` and `muse read-snapshot`.
+
+Run #3's real Muse installation and Git import/export completed; the R0.2 snapshot audit, R0.3 status audit, and R0.5 consolidated evidence packet all returned PASS. No evidence from this run supports an upstream Muse corruption bug. It **still has not verified internal ancestry or historical snapshots**.
+
+A strict synthetic CLI test now rejects **both** formerly bad behaviors: `--format json` and unprefixed 64-hex arguments. The readback comparison still refuses malformed IDs, incorrect merge parents, and wrong file hashes. Re-run only after reviewed CI and operator authorization.
+
 ## R0.7 live run #2: test-harness failure, NOT a Muse fidelity defect
 
 The first manual run after merging R0.7, [GitHub Actions #43976504464](https://github.com/MichaelWave369/GitPorch/actions/runs/43976504464), **failed only in the new internal-history auditor**. The preserved `muse-internal-history-audit.err` contains:

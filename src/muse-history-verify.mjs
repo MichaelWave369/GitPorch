@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const gitRe = /^[a-f0-9]{40}$/;
 const museRe = /^(?:sha256:)?[a-f0-9]{64}$/;
 function bareMuseId(value) { return typeof value === 'string' && museRe.test(value) ? value.replace(/^sha256:/, '') : null; }
+function canonicalMuseId(value) { const bare = bareMuseId(value); if (bare === null) throw new Error('Invalid Muse object ID'); return 'sha256:' + bare; }
 function sameMuseId(a, b) {
   if (a == null || b == null) return a == null && b == null;
   const aId = bareMuseId(a);
@@ -23,9 +24,9 @@ export function eventsFromNDJSON(text) {
   return text.trim().split(/\r?\n/).map(line => JSON.parse(line));
 }
 function readMuse(cwd, command, arg) {
-  // Plumbing commands emit JSON by default in Muse 0.2.2rc9; --format json is not supported.
-  // Accept prefixed import receipt IDs but pass the documented bare 64-hex ID.
-  const args = command === '--version' ? ['--version'] : [command, bareMuseId(arg) ?? arg];
+  // Muse 0.2.2rc9 emits JSON by default, rejects --format json, and requires
+  // canonical sha256:<hex> CLI IDs. Normalize only for equality comparisons.
+  const args = command === '--version' ? ['--version'] : [command, canonicalMuseId(arg)];
   const r = spawnSync('muse', args, { cwd, encoding: 'utf8', timeout: 15000, maxBuffer: MAX, windowsHide: true, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
   if (r.error || r.status !== 0) throw new Error('Muse read-only ' + command + ' failed: ' + (r.stderr || r.error?.message || '').slice(0, 240));
   return command === '--version' ? r.stdout.trim() : JSON.parse(r.stdout);
