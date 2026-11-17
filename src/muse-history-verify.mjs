@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // GitPorch R0.7: read-only comparison of stored Muse DAG and historical blobs.
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -49,6 +50,32 @@ function readMuse(cwd, command, arg, diagnosticsDir) {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Muse ' + command + ' JSON must be an object');
   return parsed;
 }
+function readStoredBlob(cwd, id, diagnosticsDir) {
+  // A Muse snapshot manifest maps paths to *Muse object IDs*, not the
+  // SHA-256 of raw file bytes. Read the original blob bytes and hash those.
+  // muse cat-object emits raw bytes, so NEVER decode stdout as UTF-8.
+  const canonical = canonicalMuseId(id);
+  const r = spawnSync('muse', ['cat-object', canonical], {
+    cwd, encoding: null, timeout: 15000, maxBuffer: MAX, windowsHide: true,
+    env: { ...process.env, GIT_TERMINAL_PROMPT: '0' }
+  });
+  const stderr = Buffer.isBuffer(r.stderr) ? r.stderr.toString('utf8') : String(r.stderr ?? '');
+  const stdout = Buffer.isBuffer(r.stdout) ? r.stdout : Buffer.alloc(0);
+  const digest = r.status === 0 && !r.error ? crypto.createHash('sha256').update(stdout).digest('hex') : null;
+  if (diagnosticsDir) {
+    // Capture the digest and status, not the raw source bytes. One report per
+    // unique blob, in the same ephemeral synthetic-only evidence directory.
+    fs.writeFileSync(path.join(diagnosticsDir, 'muse-cat-object-' + bareMuseId(id) + '.txt'), [
+      'command=cat-object', 'object_id=' + canonical, 'exit_code=' + (r.status ?? 'unavailable'),
+      'byte_length=' + stdout.length, 'raw_sha256=' + (digest ?? 'UNAVAILABLE'),
+      'stderr:', stderr.slice(0, 1024)
+    ].join('\n'), { flag: 'wx', mode: 0o600 });
+  }
+  if (r.error || r.status !== 0) {
+    throw new Error('Muse cat-object failed for ' + canonical + ': ' + (stderr || r.error?.message || '').slice(0, 220));
+  }
+  return { sha256: digest, byteLength: stdout.length };
+}
 export function captureReadbacks(cwd, events, diagnosticsDir) {
   if (!path.isAbsolute(cwd) || !fs.statSync(path.join(cwd, '.muse')).isDirectory()) throw new Error('Expected absolute Muse repository directory');
   if (diagnosticsDir !== undefined) {
@@ -68,10 +95,23 @@ export function captureReadbacks(cwd, events, diagnosticsDir) {
     const snapshot = readMuse(cwd, 'read-snapshot', commit.snapshot_id, diagnosticsDir);
     records.push({ muse_commit_id: e.muse_commit_id, commit, snapshot });
   }
-  return { schema: 'gitporch.muse-readbacks.v1', museVersion: readMuse(cwd, '--version'), records };
+  const uniqueObjects = new Set();
+  for (const row of records) {
+    for (const id of Object.values(row.snapshot.manifest ?? {})) {
+      if (!museRe.test(id)) throw new Error('Invalid Muse blob ID in stored snapshot');
+      uniqueObjects.add(bareMuseId(id));
+    }
+  }
+  if (uniqueObjects.size > 256) throw new Error('Unexpectedly many unique blobs in disposable history fixture');
+  const blobs = {};
+  for (const id of uniqueObjects) blobs[id] = readStoredBlob(cwd, id, diagnosticsDir);
+  return { schema: 'gitporch.muse-readbacks.v2', museVersion: readMuse(cwd, '--version'), records, blobs };
 }
 export function verifyReadbacks(baseline, events, capture) {
   if (baseline?.schema !== 'gitporch.muse-git-history-baseline.v1' || !Array.isArray(baseline.commits) || baseline.commits.length < 1 || baseline.commits.length > 96 || !Array.isArray(events) || !Array.isArray(capture?.records)) throw new Error('Invalid baseline, events or captured Muse records');
+  // Absence of blob byte readbacks is an incomplete audit, never a success.
+  // v1 captures must not be interpreted as proof of historical byte parity.
+  if (!capture.blobs || typeof capture.blobs !== 'object' || Array.isArray(capture.blobs)) throw new Error('Missing actual Muse cat-object byte digests (R0.7 v2 required)');
   const problems = [];
   const git = new Map();
   for (const c of baseline.commits) {
@@ -104,11 +144,20 @@ export function verifyReadbacks(baseline, events, capture) {
     const actual = [m.parent_commit_id ?? null, m.parent2_commit_id ?? null];
     if (c.parents.length > 2 || parents.some(x => !x) || !sameMuseId(parents[0] ?? null, actual[0]) || !sameMuseId(parents[1] ?? null, actual[1])) problems.push({ code: 'PARENT_DAG', gitSha: c.gitSha, expected: parents, actual });
     if (!museRe.test(m.snapshot_id) || !sameMuseId(s.snapshot_id, m.snapshot_id) || !s.manifest || typeof s.manifest !== 'object' || Array.isArray(s.manifest)) { problems.push({ code: 'SNAPSHOT_SCHEMA', gitSha: c.gitSha }); continue; }
-    const wanted = new Map(c.files.map(f => [f.path, 'sha256:' + f.sha256]));
+    const wanted = new Map(c.files.map(f => [f.path, f.sha256]));
     if (wanted.size !== c.files.length) throw new Error('Duplicate Git snapshot paths');
     for (const [p, hash] of wanted) {
       if (!Object.hasOwn(s.manifest, p)) problems.push({ code: 'MISSING_PATH', gitSha: c.gitSha, path: p });
-      else if (!sameMuseId(s.manifest[p], hash)) problems.push({ code: 'WRONG_BLOB', gitSha: c.gitSha, path: p, expected: hash, actual: s.manifest[p] });
+      else if (!museRe.test(s.manifest[p])) problems.push({ code: 'INVALID_BLOB_ID', gitSha: c.gitSha, path: p, actual: s.manifest[p] });
+      else {
+        const id = bareMuseId(s.manifest[p]);
+        const raw = capture.blobs[id];
+        if (!raw || !/^[a-f0-9]{64}$/.test(raw.sha256) || !Number.isSafeInteger(raw.byteLength) || raw.byteLength < 0) {
+          problems.push({ code: 'MISSING_BLOB_BYTES', gitSha: c.gitSha, path: p, museBlobId: s.manifest[p] });
+        } else if (raw.sha256 !== hash) {
+          problems.push({ code: 'WRONG_BLOB_BYTES', gitSha: c.gitSha, path: p, museBlobId: s.manifest[p], expectedRawSha256: hash, observedRawSha256: raw.sha256, observedByteLength: raw.byteLength });
+        }
+      }
     }
     for (const p of Object.keys(s.manifest)) if (!wanted.has(p)) problems.push({ code: 'EXTRA_PATH', gitSha: c.gitSha, path: p });
     checked.push({ gitSha: c.gitSha, museCommitId: id, parentsExpected: parents, parentsObserved: actual, executableModeUnverified: c.files.filter(f => f.mode === '100755').map(f => f.path) });
@@ -120,6 +169,7 @@ export function verifyReadbacks(baseline, events, capture) {
     museVersion: capture.museVersion ?? 'UNKNOWN', gitCommitCount: git.size, museReadbackCount: checked.length,
     importWarnings: { exec_bit_not_kept: done.length === 1 ? done[0].exec_bit_not_kept ?? [] : [] },
     problems, checked,
+    verified: ['Stored Muse parent DAG under --preserve-merge-commits', 'Historical tracked paths and cat-object raw byte SHA-256 when PASS'],
     unverified: ['Git executable modes and other file metadata', 'Author and committer history', 'Signatures and provenance', 'Remote sync and production compatibility'],
     execution: { writesAttempted: false, pushesAttempted: false },
   };
