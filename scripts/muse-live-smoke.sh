@@ -51,6 +51,10 @@ cd "$CODE"
 stage muse_version
 muse --version > "$ROOT/muse-version.txt" 2>&1
 muse bridge git-import --help > "$ROOT/import-help.txt" 2>&1
+if ! grep -Fq -- '--preserve-merge-commits' "$ROOT/import-help.txt"; then
+  echo 'Muse import help lacks --preserve-merge-commits, refusing full-DAG trial.' >&2
+  exit 2
+fi
 muse bridge git-export --help > "$ROOT/export-help.txt" 2>&1
 if ! grep -Fq -- '--no-push' "$ROOT/export-help.txt"; then
   echo 'Muse export help lacks explicit --no-push; refusing export.' >&2
@@ -69,7 +73,7 @@ mkdir -m 700 "$ROOT/muse"
   cd "$ROOT/muse"
   muse init > "$ROOT/muse-init.log" 2>&1
   stage muse_import
-  muse bridge git-import "$ROOT/source" --branch main --json > "$ROOT/muse-import.log" 2>&1
+  muse bridge git-import "$ROOT/source" --branch main --preserve-merge-commits --json > "$ROOT/muse-import.log" 2>&1
   # Only in our freshly created disposable directory; never in a user checkout.
   stage muse_checkout
   muse checkout --force main > "$ROOT/muse-checkout.log" 2>&1
@@ -85,6 +89,7 @@ stage muse_internal_history_audit
   cd "$ROOT/muse"
   muse read-commit --help > "$ROOT/muse-read-commit-help.txt" 2>&1 || true
   muse read-snapshot --help > "$ROOT/muse-read-snapshot-help.txt" 2>&1 || true
+  muse cat-object --help > "$ROOT/muse-cat-object-help.txt" 2>&1 || true
 )
 node src/muse-history-verify.mjs capture "$ROOT/git-history-baseline.json" "$ROOT/muse-import.log" "$ROOT/muse" "$ROOT" > "$ROOT/muse-internal-history-audit.json" 2> "$ROOT/muse-internal-history-audit.err" || r07_failed=1
 # A separate, newly-created mirror with no Git remote. The first export's

@@ -47,7 +47,8 @@ test('R0.6 refuses execution outside approved manual GitHub Actions', t => {
 });
 
 test('R0.6 runs only documented operations against synthetic directories and never Git pushes', () => {
-  assert.match(script, /muse bridge git-import "\$ROOT\/source" --branch main --json/);
+  assert.match(script, /muse bridge git-import "\$ROOT\/source" --branch main --preserve-merge-commits --json/);
+  assert.match(script, /grep -Fq -- '--preserve-merge-commits' "\$ROOT\/import-help.txt"/);
   assert.match(script, /muse bridge git-export --git-dir "\$ROOT\/mirror" --git-branch muse-mirror --no-push --json/);
   assert.match(script, /muse checkout --force main/);
   assert.match(script, /refusing|Refusing/);

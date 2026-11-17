@@ -1,6 +1,17 @@
 # GitPorch × Muse R0.7: internal history fidelity audit
 
-**This adds a new read-only audit to the manually dispatched disposable Muse trial. It has NOT yet been executed against the real Muse CLI.**
+**Read-only synthetic-only audit. Live runs through #5 have exercised the readbacks; the corrected full-merge and raw-blob-byte fidelity checks are pending a new explicitly authorized manual run.**
+
+## R0.7 live run #5: complete internal readbacks, but two invalid checker assumptions
+
+[GitHub Actions run #43992424755](https://github.com/MichaelWave369/GitPorch/actions/runs/43992424755) is the **first successful collection of six live `read-commit --json` and six `read-snapshot --json` records** with Muse 0.2.2rc9. The import/export, snapshot, status and evidence-packet audits all passed. The R0.7 evaluator reported `FAIL_OR_INCOMPLETE_HISTORY`:
+
+- The imported Git merge `7044b434...` expected two parents, but the stored Muse record had `parent2_commit_id: null`. **This is expected when importing without `--preserve-merge-commits`**. The installed CLI's `git-import --help` explicitly states: "Without it a merge keeps its first parent only; every snapshot is still the exact Git tree." The previous fixture omitted the flag. The new trial **requires** it and fails closed if import help lacks it.
+- Eighteen `WRONG_BLOB` findings came from comparing **Muse snapshot manifest object IDs** directly to raw Git file-content SHA-256 digests. Muse snapshot manifests contain content-store **object references**, not necessarily raw-contents hashes; that comparison is invalid. **No data corruption is established by those IDs alone.**
+
+The new verifier uses `muse cat-object sha256:<objectid>` to fetch the stored file's **raw bytes** once for every distinct object in all six historical snapshots. It hashes those bytes with SHA-256, compares against Git's raw blob-content SHA-256, and still checks exact path presence/absence, commit metadata and both Git parent links when full merge preservation is requested. A missing/unreadable blob **fails closed**; snapshots with changed/missing paths also fail. Each attempted cat-object read records object ID, exit status, byte length and content digest, **never a source-file dump**. The repository has no Git remotes, and the existing manual-only approval and installer hash gates remain unchanged.
+
+**Do not report #5's parent2 or manifest-ID findings as Muse defects.** The accepted follow-up to issue [muse#140](https://staging.musehub.ai/gabriel/muse/issues/140) would be a **new live run with `--preserve-merge-commits`** that still produces incorrect parents, unexpected historical paths, or raw file-content hash mismatches. The currently passing final Git mirror alone does not prove per-commit fidelity.
 
 ## R0.7 live run #4: JSON readback output must be requested explicitly
 
@@ -64,7 +75,8 @@ node src/muse-history-verify.mjs capture \
 For each Muse commit ID from the real import log it makes **read-only, local** CLI calls:
 
 - `muse read-commit sha256:<id> --json` for parent IDs, snapshot pointer, and `metadata.git_sha`;
-- `muse read-snapshot sha256:<id> --json` for the complete stored manifest mapping paths to blob hashes.
+- `muse read-snapshot sha256:<id> --json` for the complete stored manifest mapping paths to **Muse object IDs**, which are not compared directly to raw Git hashes;
+- `muse cat-object sha256:<object-id>` for raw bytes (SHA-256 hashed in GitPorch) of every distinct historical object in the manifests.
 
 It compares these independent readbacks to the R0.4 Git baseline, checking each commit including the merge: all Git SHAs have an imported Muse commit, both parent edges are preserved, and every historical tracked path and raw blob SHA-256 agrees. The report gives exact commit/path error codes if not.
 
