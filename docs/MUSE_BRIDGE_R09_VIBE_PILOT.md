@@ -50,6 +50,15 @@ Only that the **selected authentic historical Vibe Git DAG and tracked file byte
 
 The R0.8 bridge dashboard currently stores *unsigned R0.7-style receipt summaries* without original repository identity and selected historical scope. **Do not publish an R0.9 receipt to that dashboard yet**; a future display revision should label Vibe, pinned public main, chosen historical SHA and evidence origin separately.
 
+## Run #8/#9 failure diagnosis and evidence hardening (November 17, 2026)
+
+- [Manual run #44195951348](https://github.com/MichaelWave369/GitPorch/actions/runs/44195951348) stopped in the **new explicit approval preflight**, because the dropdown was left at `DO_NOT_RUN`. No Git clone or Muse code was run.
+- [Manual run #44196108057](https://github.com/MichaelWave369/GitPorch/actions/runs/44196108057) **passed approval**, pinned public Vibe clone, authentic historical-slice baseline, installer SHA256 check and installation of Muse **0.2.2rc11**. It then reached the real Vibe history/import/export verification and reported that **at least one fidelity gate failed**. This is not yet sufficient to attribute an issue to Muse or GitPorch.
+- Critically, the earlier workflow artifact `path` expressions contained a **stray closing brace** after `${{ runner.temp }}`, resolving to a path like `/home/runner/work/_temp}/...`. GitHub therefore uploaded **no diagnostic evidence** for run #9, despite the `if: always()` step.
+
+This fix repairs the artifact paths, makes a missing artifact a visible upload error, records the runner's failed stage, and prints **bounded, public-source-only** summaries of the internal history, final snapshot, status receipt, and evidence packet when an audit fails. The complete JSON and stderr files are uploaded for operator inspection on the next manually approved run. It is impossible to reconstruct the missing run #9 evidence from the job log alone.
+
+Before another test, independently recheck *both* the Vibe `main` Git SHA and the reviewed Muse installer bytes. The prior pins are historical observations and may be stale. No manual workflow is dispatched by this PR.
 ## Later experiments
 
 **R0.9B:** Vibe semantic-diff/merge comparison using detached copied files, separate offline runtime, actual Vibe tools, and human-reviewed results. This trial does not execute Vibe's Python code or install its dependencies.
