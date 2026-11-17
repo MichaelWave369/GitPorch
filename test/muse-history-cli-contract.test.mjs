@@ -11,7 +11,7 @@ const gitSha = 'd'.repeat(40);
 const commitId = 'a'.repeat(64);
 const snapshotId = 'b'.repeat(64);
 const objectId = 'c'.repeat(64);
-const originalBytes = Buffer.from('Git source file bytes\\n', 'utf8');
+const originalBytes = Buffer.from('Git source file bytes' + String.fromCharCode(10), 'utf8');
 const originalSha256 = crypto.createHash('sha256').update(originalBytes).digest('hex');
 
 function fixture(t) {
@@ -88,17 +88,17 @@ test('R0.7 requests explicit --json, preserves raw CLI evidence and validates im
   assert.equal(got.museVersion, 'muse 0.2.2rc9');
   assert.equal(verifyReadbacks(baseline, events, got).status, 'PASS_DAG_AND_HISTORICAL_BLOBS_ONLY');
   const calls = fs.readFileSync(f.trace, 'utf8').trim().split('\n').map(JSON.parse);
-  assert.deepEqual(calls.slice(-3), [
+  assert.deepEqual(calls.slice(-4), [
     ['read-commit', 'sha256:' + commitId, '--json'],
     ['read-snapshot', 'sha256:' + snapshotId, '--json'],
     ['cat-object', 'sha256:' + objectId],
     ['--version']
   ]);
-  for (const [command, id] of [['read-commit', commitId], ['read-snapshot', snapshotId]]) {
   assert.equal(got.blobs[objectId].sha256, originalSha256);
   assert.notEqual(objectId, originalSha256, 'Muse object ID must differ from raw-file SHA256 for this test');
   const blobEvidence = fs.readFileSync(path.join(f.root, 'muse-cat-object-' + objectId + '.txt'), 'utf8');
   assert.match(blobEvidence, new RegExp('raw_sha256=' + originalSha256));
+  for (const [command, id] of [['read-commit', commitId], ['read-snapshot', snapshotId]]) {
     const evidence = fs.readFileSync(path.join(f.root, 'muse-' + command + '-' + id + '.txt'), 'utf8');
     assert.match(evidence, /exit_code=0/);
     assert.match(evidence, /stdout:\n\{/);
