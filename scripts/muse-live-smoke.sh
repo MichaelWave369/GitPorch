@@ -79,7 +79,14 @@ mkdir -m 700 "$ROOT/muse"
 # then continue the export so one mismatch does not conceal other evidence.
 r07_failed=0
 stage muse_internal_history_audit
-node src/muse-history-verify.mjs capture "$ROOT/git-history-baseline.json" "$ROOT/muse-import.log" "$ROOT/muse" > "$ROOT/muse-internal-history-audit.json" 2> "$ROOT/muse-internal-history-audit.err" || r07_failed=1
+# Preserve the tested CLI's actual argument contract and raw readback output
+# in the already approved disposable evidence directory, before parsing.
+(
+  cd "$ROOT/muse"
+  muse read-commit --help > "$ROOT/muse-read-commit-help.txt" 2>&1 || true
+  muse read-snapshot --help > "$ROOT/muse-read-snapshot-help.txt" 2>&1 || true
+)
+node src/muse-history-verify.mjs capture "$ROOT/git-history-baseline.json" "$ROOT/muse-import.log" "$ROOT/muse" "$ROOT" > "$ROOT/muse-internal-history-audit.json" 2> "$ROOT/muse-internal-history-audit.err" || r07_failed=1
 # A separate, newly-created mirror with no Git remote. The first export's
 # ancestry is not a reconstruction of the original Git history.
 stage mirror_init
