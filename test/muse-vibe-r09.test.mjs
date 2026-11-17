@@ -101,7 +101,7 @@ test('R0.9 manual workflow is fixed-public-source, review-pinned, token-minimal 
   assert.match(workflow, /sha256sum --check --status/);
   assert.match(workflow, /if: always\(\)/);
   assert.match(script, /https:\/\/github\.com\/MichaelWave369\/Vibe\.git/);
-  assert.match(script, /"$actual" != "$VIBE_PINNED_SHA"/);
+  assert.ok(script.includes('if [[ "$actual" != "$VIBE_PINNED_SHA" ]]'), 'actual Git SHA must match operator pin');
   assert.match(script, /git -C "\$SOURCE" remote remove origin/);
   assert.match(script, /--preserve-merge-commits --json/);
   assert.match(script, /--no-push --json/);
