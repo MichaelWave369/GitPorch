@@ -37,3 +37,18 @@
 #builds .club-row{padding:11px 0}
 #builds .club-row small{overflow-wrap:anywhere}
 #build-pulse{line-height:1.5;font-size:16px}
+
+
+/* Muse R0.8: local-only evidence shelf, not a connected MuseHub dashboard. */
+.muse-bridge .clubhouse-grid { grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) }
+.bridge-facts { display:grid;gap:0;min-width:0 }
+.bridge-fact { display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-top:1px solid #36503c;padding:10px 0;font-size:11px }
+.bridge-fact span { color:#a5baa4;flex:0 0 45% }
+.bridge-fact strong { text-align:right;font-size:11px;color:#e5e9dc;overflow-wrap:anywhere;min-width:0;font-weight:650 }
+.bridge-status { color:#d4cf9a;letter-spacing:.5px;font-size:13px }
+.bridge-muted { color:#b6c4aa;font-size:12px;line-height:1.65 }
+.bridge-mappings { max-height:420px;overflow:auto;overflow-wrap:anywhere }
+.bridge-map { gap:6px }
+.bridge-map strong { font:600 12px ui-monospace,SFMono-Regular,Consolas,monospace }
+.bridge-run-link { display:inline-block;margin-top:12px;font-size:12px;color:var(--gold);text-decoration:underline }
+@media(max-width:900px){.muse-bridge .clubhouse-grid{grid-template-columns:1fr}}
