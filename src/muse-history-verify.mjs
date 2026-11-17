@@ -23,24 +23,49 @@ export function eventsFromNDJSON(text) {
   if (Buffer.byteLength(text) > MAX) throw new Error('Oversized import log');
   return text.trim().split(/\r?\n/).map(line => JSON.parse(line));
 }
-function readMuse(cwd, command, arg) {
-  // Muse 0.2.2rc9 emits JSON by default, rejects --format json, and requires
-  // canonical sha256:<hex> CLI IDs. Normalize only for equality comparisons.
-  const args = command === '--version' ? ['--version'] : [command, canonicalMuseId(arg)];
+function readMuse(cwd, command, arg, diagnosticsDir) {
+  // Live 0.2.2rc9 run #4 returned text starting "sha256:" when read-commit
+  // lacked --json. --format json was rejected in run #2. Request JSON
+  // explicitly with the --json flag used in upstream Muse issue repros.
+  const args = command === '--version' ? ['--version'] : [command, canonicalMuseId(arg), '--json'];
   const r = spawnSync('muse', args, { cwd, encoding: 'utf8', timeout: 15000, maxBuffer: MAX, windowsHide: true, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
+  if (diagnosticsDir && command !== '--version') {
+    // Evidence is synthetic-only and written OUTSIDE .muse and Git worktrees.
+    // Capture the bounded exact CLI response even if the parser rejects it.
+    const name = 'muse-' + command + '-' + bareMuseId(arg) + '.txt';
+    fs.writeFileSync(path.join(diagnosticsDir, name), [
+      'command=' + command, 'object_id=' + canonicalMuseId(arg),
+      'exit_code=' + (r.status ?? 'unavailable'),
+      'stdout:', r.stdout ?? '', 'stderr:', r.stderr ?? ''
+    ].join('\n'), { flag: 'wx', mode: 0o600 });
+  }
   if (r.error || r.status !== 0) throw new Error('Muse read-only ' + command + ' failed: ' + (r.stderr || r.error?.message || '').slice(0, 240));
-  return command === '--version' ? r.stdout.trim() : JSON.parse(r.stdout);
+  if (command === '--version') return r.stdout.trim();
+  let parsed;
+  try { parsed = JSON.parse(r.stdout); }
+  catch {
+    throw new Error('Muse ' + command + ' did not emit JSON with --json; diagnostic stdout/stderr captured for review');
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Muse ' + command + ' JSON must be an object');
+  return parsed;
 }
-export function captureReadbacks(cwd, events) {
+export function captureReadbacks(cwd, events, diagnosticsDir) {
   if (!path.isAbsolute(cwd) || !fs.statSync(path.join(cwd, '.muse')).isDirectory()) throw new Error('Expected absolute Muse repository directory');
+  if (diagnosticsDir !== undefined) {
+    if (!path.isAbsolute(diagnosticsDir) || !fs.statSync(diagnosticsDir).isDirectory()) throw new Error('Diagnostics directory must exist and be absolute');
+    const museRoot = fs.realpathSync(cwd);
+    const diagnosticsRoot = fs.realpathSync(diagnosticsDir);
+    const relative = path.relative(museRoot, diagnosticsRoot);
+    if (relative === '' || (relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative))) throw new Error('Diagnostics must be stored outside the Muse repository');
+  }
   const imported = events.filter(e => e.event === 'commit');
   if (imported.length < 1 || imported.length > 96) throw new Error('Expected 1-96 imported commits');
   const records = [];
   for (const e of imported) {
     if (!gitRe.test(e.git_sha) || !museRe.test(e.muse_commit_id)) throw new Error('Invalid import event');
-    const commit = readMuse(cwd, 'read-commit', e.muse_commit_id);
+    const commit = readMuse(cwd, 'read-commit', e.muse_commit_id, diagnosticsDir);
     if (!museRe.test(commit.snapshot_id)) throw new Error('Invalid Muse snapshot ID');
-    const snapshot = readMuse(cwd, 'read-snapshot', commit.snapshot_id);
+    const snapshot = readMuse(cwd, 'read-snapshot', commit.snapshot_id, diagnosticsDir);
     records.push({ muse_commit_id: e.muse_commit_id, commit, snapshot });
   }
   return { schema: 'gitporch.muse-readbacks.v1', museVersion: readMuse(cwd, '--version'), records };
@@ -101,10 +126,10 @@ export function verifyReadbacks(baseline, events, capture) {
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const [action, gitFile, eventsFile, source, ...extra] = process.argv.slice(2);
-    if (!['capture', 'audit'].includes(action) || !gitFile || !eventsFile || !source || extra.length) throw new Error('Usage: node src/muse-history-verify.mjs capture|audit <baseline.json> <import.ndjson> <museDir|readbacks.json>');
+    const [action, gitFile, eventsFile, source, diagnosticsDir, ...extra] = process.argv.slice(2);
+    if (!['capture', 'audit'].includes(action) || !gitFile || !eventsFile || !source || extra.length || (action === 'audit' && diagnosticsDir)) throw new Error('Usage: node src/muse-history-verify.mjs capture <baseline.json> <import.ndjson> <museDir> [absolute-diagnosticsDir] | audit <baseline.json> <import.ndjson> <readbacks.json>');
     const git = JSON.parse(loaded(gitFile)), events = eventsFromNDJSON(loaded(eventsFile));
-    const raw = action === 'capture' ? captureReadbacks(source, events) : JSON.parse(loaded(source));
+    const raw = action === 'capture' ? captureReadbacks(source, events, diagnosticsDir) : JSON.parse(loaded(source));
     const captured = raw.records ? raw : raw.capture;
     const result = verifyReadbacks(git, events, captured);
     process.stdout.write(JSON.stringify({ ...result, capture: captured }, null, 2) + '\n');

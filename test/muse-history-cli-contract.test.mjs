@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { captureReadbacks, eventsFromNDJSON, verifyReadbacks } from '../src/muse-history-verify.mjs';
 
 const gitSha = 'd'.repeat(40);
@@ -19,16 +20,20 @@ function fixture(t) {
   fs.mkdirSync(muse);
   fs.mkdirSync(path.join(muse, '.muse'));
   const trace = path.join(root, 'calls.log');
-  // Strict fake CLI contract grounded in actual live failures: #43976504464
-  // rejected --format json; #43986428104 rejected bare IDs. Prefixed IDs
-  // are required for both read-commit and read-snapshot.
+  // Strict synthetic CLI that reproduces three real R0.7 failures:
+  // #2: --format json rejected; #3: bare commit IDs rejected;
+  // #4: default read-commit stdout was a bare "sha256:..." string,
+  //     not a JSON object. Explicit --json returns a structured record.
   const fake = [
     '#!/usr/bin/env node',
     "const fs = require('node:fs');",
     "const argv = process.argv.slice(2);",
     "fs.appendFileSync(process.env.MUSE_CALL_TRACE, JSON.stringify(argv) + '\\n');",
     "if (argv.length === 1 && argv[0] === '--version') { console.log('muse 0.2.2rc9'); process.exit(0); }",
-    "if (argv.length !== 2 || !/^sha256:[a-f0-9]{64}$/.test(argv[1])) { console.error('Invalid commit reference: use canonical sha256:<hex>'); process.exit(2); }",
+    "if (!['read-commit', 'read-snapshot'].includes(argv[0])) process.exit(3);",
+    "if (!/^sha256:[a-f0-9]{64}$/.test(argv[1] || '')) { console.error('Invalid reference: use canonical sha256:<hex>'); process.exit(2); }",
+    "if (argv.length === 2 || process.env.MUSE_MOCK_FORCE_TEXT === '1') { console.log(argv[1]); process.exit(0); }",
+    "if (argv.length !== 3 || argv[2] !== '--json') { console.error('unrecognized arguments'); process.exit(2); }",
     "if (argv[0] === 'read-commit' && argv[1] === " + JSON.stringify('sha256:' + commitId) + ") {",
     " console.log(JSON.stringify({commit_id:" + JSON.stringify(commitId) + ",metadata:{git_sha:" + JSON.stringify(gitSha) + "},parent_commit_id:null,parent2_commit_id:null,snapshot_id:" + JSON.stringify(snapshotId) + "})); process.exit(0);",
     "}",
@@ -46,8 +51,9 @@ function fixture(t) {
   t.after(() => {
     if (oldPath === undefined) delete process.env.PATH; else process.env.PATH = oldPath;
     if (oldTrace === undefined) delete process.env.MUSE_CALL_TRACE; else process.env.MUSE_CALL_TRACE = oldTrace;
+    delete process.env.MUSE_MOCK_FORCE_TEXT;
   });
-  return { muse, trace };
+  return { muse, trace, root };
 }
 
 function source() {
@@ -62,20 +68,51 @@ function source() {
   return { baseline, events };
 }
 
-test('R0.7 live CLI contract: canonical CLI IDs, default JSON, bare readback IDs, prefixed import IDs', t => {
+test('real failure #4: default read-commit returns an identifier rather than JSON', t => {
+  const f = fixture(t);
+  const result = spawnSync('muse', ['read-commit', 'sha256:' + commitId], { cwd: f.muse, encoding: 'utf8' });
+  assert.equal(result.status, 0);
+  assert.equal(result.stdout.trim(), 'sha256:' + commitId);
+  assert.throws(() => JSON.parse(result.stdout), SyntaxError);
+});
+
+test('R0.7 requests explicit --json, preserves raw CLI evidence and validates imported hashes', t => {
   const f = fixture(t);
   const { baseline, events } = source();
-  const got = captureReadbacks(f.muse, events);
+  const got = captureReadbacks(f.muse, events, f.root);
   assert.equal(got.records.length, 1);
   assert.equal(got.museVersion, 'muse 0.2.2rc9');
   assert.equal(verifyReadbacks(baseline, events, got).status, 'PASS_DAG_AND_HISTORICAL_BLOBS_ONLY');
   const calls = fs.readFileSync(f.trace, 'utf8').trim().split('\n').map(JSON.parse);
-  assert.deepEqual(calls, [
-    ['read-commit', 'sha256:' + commitId], ['read-snapshot', 'sha256:' + snapshotId], ['--version']
+  assert.deepEqual(calls.slice(-3), [
+    ['read-commit', 'sha256:' + commitId, '--json'],
+    ['read-snapshot', 'sha256:' + snapshotId, '--json'],
+    ['--version']
   ]);
+  for (const [command, id] of [['read-commit', commitId], ['read-snapshot', snapshotId]]) {
+    const evidence = fs.readFileSync(path.join(f.root, 'muse-' + command + '-' + id + '.txt'), 'utf8');
+    assert.match(evidence, /exit_code=0/);
+    assert.match(evidence, /stdout:\n\{/);
+  }
 });
 
-test('R0.7 still rejects a truly incorrect SHA-256 blob', t => {
+test('R0.7 retains exact synthetic stdout evidence even when explicit --json emits non-JSON', t => {
+  const f = fixture(t);
+  const { events } = source();
+  process.env.MUSE_MOCK_FORCE_TEXT = '1';
+  assert.throws(() => captureReadbacks(f.muse, events, f.root), /did not emit JSON with --json/);
+  const evidence = fs.readFileSync(path.join(f.root, 'muse-read-commit-' + commitId + '.txt'), 'utf8');
+  assert.match(evidence, /stdout:\nsha256:aaaaaaaa/);
+});
+
+test('R0.7 refuses diagnostic writes inside the Muse repository', t => {
+  const f = fixture(t);
+  const { events } = source();
+  assert.throws(() => captureReadbacks(f.muse, events, path.join(f.muse, '.muse')), /outside the Muse repository/);
+  assert.equal(fs.readdirSync(path.join(f.muse, '.muse')).length, 0);
+});
+
+test('R0.7 still rejects a genuinely incorrect snapshot blob SHA-256', t => {
   const f = fixture(t);
   const { baseline, events } = source();
   const got = captureReadbacks(f.muse, events);

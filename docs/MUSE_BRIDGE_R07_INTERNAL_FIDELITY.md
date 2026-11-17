@@ -2,6 +2,18 @@
 
 **This adds a new read-only audit to the manually dispatched disposable Muse trial. It has NOT yet been executed against the real Muse CLI.**
 
+## R0.7 live run #4: JSON readback output must be requested explicitly
+
+[GitHub Actions run #43990973074](https://github.com/MichaelWave369/GitPorch/actions/runs/43990973074) was another **GitPorch harness failure**, not a demonstrated Muse history-fidelity problem. The real 0.2.2rc9 installer, all six Git imports, the exported Git snapshot, and existing snapshot/status/receipt audits passed. R0.7 instead stopped with:
+
+```text
+[Muse R0.7] Unexpected token 's', "sha256:e74"... is not valid JSON
+```
+
+The installed CLI's unflagged `muse read-commit sha256:<id>` response starts with a plain SHA-256 identifier rather than a JSON object. The previous regression fake incorrectly returned JSON by default and therefore masked this contract mismatch. Upstream Muse examples demonstrate the explicit `--json` switch; R0.7 now calls `muse read-commit sha256:<id> --json` and `muse read-snapshot sha256:<id> --json`, while keeping the valid canonical ID requirement learned from run #3. **A real R0.7 internal-history pass remains UNVERIFIED** until a new manual run.
+
+To avoid another blind diagnosis, the disposable runner also records `muse read-commit --help`, `muse read-snapshot --help`, plus bounded **raw stdout, stderr, status and object ID** per readback in top-level synthetic text files. These files are collected in the existing seven-day GitHub Actions evidence artifact even if parsing fails. Never collect real/private repository data using this diagnostic mode.
+
 ## R0.7 live run #3: canonical Muse ID requirement (GitPorch harness bug)
 
 [GitHub Actions run #43986428104](https://github.com/MichaelWave369/GitPorch/actions/runs/43986428104) also failed **only in our R0.7 checker**. Its uploaded `muse-internal-history-audit.err` shows:
@@ -46,13 +58,13 @@ After the R0.6 synthetic Git import and Muse checkout, the existing manual-only 
 node src/muse-history-verify.mjs capture \
   "$ROOT/git-history-baseline.json" \
   "$ROOT/muse-import.log" \
-  "$ROOT/muse" > "$ROOT/muse-internal-history-audit.json"
+  "$ROOT/muse" "$ROOT" > "$ROOT/muse-internal-history-audit.json"
 ```
 
 For each Muse commit ID from the real import log it makes **read-only, local** CLI calls:
 
-- `muse read-commit <id> --format json` for parent IDs, snapshot pointer, and `metadata.git_sha`;
-- `muse read-snapshot <id> --format json` for the complete stored manifest mapping paths to blob hashes.
+- `muse read-commit sha256:<id> --json` for parent IDs, snapshot pointer, and `metadata.git_sha`;
+- `muse read-snapshot sha256:<id> --json` for the complete stored manifest mapping paths to blob hashes.
 
 It compares these independent readbacks to the R0.4 Git baseline, checking each commit including the merge: all Git SHAs have an imported Muse commit, both parent edges are preserved, and every historical tracked path and raw blob SHA-256 agrees. The report gives exact commit/path error codes if not.
 
