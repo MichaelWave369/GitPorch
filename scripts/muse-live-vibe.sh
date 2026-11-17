@@ -26,7 +26,10 @@ fi
 stage() { printf 'current_stage=%s\n' "$1" > "$ROOT/run-stage.txt"; }
 on_failure() {
   ec=$?
-  printf 'failed_action=%s\nexit_code=%s\n' "$ACTION" "$ec" > "$ROOT/runner-error.txt"
+  local current_stage
+  current_stage="$(cat "$ROOT/run-stage.txt" 2>/dev/null || true)"
+  printf 'failed_action=%s\nfailed_stage=%s\nexit_code=%s\n' "$ACTION" "$current_stage" "$ec" > "$ROOT/runner-error.txt"
+  echo "::error title=R0.9 failed before completing audits::Action $ACTION, $current_stage, exit $ec. Inspect uploaded public-only evidence." >&2
   exit "$ec"
 }
 if [[ "$ACTION" == prepare ]]; then
@@ -139,7 +142,33 @@ node "$CODE/src/muse-bridge-evidence-packet.mjs" "$SOURCE" "$MIRROR" \
 printf 'real_public_vibe_commits=true\nhistorical_slice_only=true\nfailed_checks=%s\nno_push=true\nhuman_review_required=true\n' "$failed" > "$ROOT/run-summary.txt"
 if [[ "$failed" != 0 ]]; then
   stage blocked
-  echo 'Some R0.9 fidelity gate failed. Preserve and review all evidence.' >&2
+  echo "::error title=R0.9 compatibility audit failed::Muse was installed and the public Vibe preflight completed. At least one historical-byte, final-snapshot or status audit failed." >&2
+  # Print bounded, PUBLIC-fixture-only diagnostic summaries so a broken
+  # artifact uploader never turns a real failure into an opaque red X.
+  # Preserve complete JSON/ERR logs in the upload-artifact stage.
+  for label in muse-internal-history-audit snapshot-audit status-audit evidence-packet; do
+    if [[ -s "$ROOT/$label.json" ]]; then
+      node -e '
+        const fs=require("node:fs"), file=process.argv[1], label=process.argv[2];
+        try {
+          const v=JSON.parse(fs.readFileSync(file,"utf8"));
+          const codes=Array.isArray(v.problems) ? v.problems.slice(0,12).map(x=>x.code) :
+            Array.isArray(v.findings) ? v.findings.slice(0,12) : 
+            Array.isArray(v.blockers) ? v.blockers.slice(0,12) : [];
+          const differences=v.differences && typeof v.differences==="object" ?
+            Object.fromEntries(Object.entries(v.differences).map(([k,x])=>[k,Array.isArray(x)?x.length:"unknown"])) : undefined;
+          console.error("[R0.9 diagnostic] "+JSON.stringify({label,status:v.status??"UNREPORTED",codes,differences}));
+        } catch { console.error("[R0.9 diagnostic] "+label+": JSON unreadable or incomplete"); }
+      ' "$ROOT/$label.json" "$label" || true
+    else
+      echo "[R0.9 diagnostic] $label: no JSON report" >&2
+    fi
+    if [[ -s "$ROOT/$label.err" ]]; then
+      echo "[R0.9 diagnostic] $label stderr (first 1200 bytes):" >&2
+      head -c 1200 "$ROOT/$label.err" >&2 || true
+      echo >&2
+    fi
+  done
   exit 1
 fi
 stage complete
