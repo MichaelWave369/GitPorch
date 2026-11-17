@@ -270,3 +270,71 @@ async function refreshIsolatedBuilds(){
  }
 }
 refreshIsolatedBuilds();
+
+
+// Muse R0.8: localhost-only, GET-only view of unsigned operator-imported receipts.
+// Never invent a passing bridge state when the endpoint is absent/unreachable.
+async function refreshMuseBridge() {
+ const state=$('muse-bridge-state'), summary=$('muse-bridge-summary');
+ const commits=$('muse-bridge-commits'), limits=$('muse-bridge-limits');
+ if(!state||!summary||!commits||!limits)return;
+ const blank=message=>{
+   state.replaceChildren(node('p','bridge-muted',message));
+   summary.replaceChildren();
+   commits.replaceChildren(node('p','club-empty','No verified correspondence available.'));
+ };
+ try {
+   const response=await fetch('/api/muse-bridge',{cache:'no-store'});
+   if(!response.ok)throw new Error('Endpoint unavailable');
+   const payload=await response.json();
+   if(payload.state==='INVALID_RECEIPT_SHELF'){
+     blank('INVALID LOCAL RECEIPTS · Evidence withheld.');
+     return;
+   }
+   if(payload.state==='NO_RECEIPTS'){
+     blank('NO LOCAL RECEIPTS · Import evidence explicitly using the CLI.');
+     return;
+   }
+   if(payload.state!=='UNSIGNED_LOCAL_RECEIPTS'||!Array.isArray(payload.receipts)||!payload.receipts.length)throw new Error('Malformed response');
+   const report=payload.receipts[0];
+   if(report.state!=='REPLAYED_PASS_UNSIGNED'||!Array.isArray(report.commitMappings))throw new Error('Invalid receipt');
+   state.replaceChildren(node('strong','bridge-status','EVIDENCE REPLAYED · UNSIGNED'));
+   const f=[
+      ['Muse version',report.museVersion],
+      ['Last imported (receipt)',date(report.importedAt)],
+      ['Git tip',report.gitHead],
+      ['Muse tip',report.museHead],
+      ['Historical commits',report.commitsChecked],
+      ['Historical file entries',report.historicalEntriesChecked],
+      ['Distinct stored objects',report.distinctMuseBlobsChecked],
+      ['Snapshot',report.finalSnapshot],
+      ['History and byte checks',report.ancestryAndHistoricalBytes],
+      ['Reported sync drift',report.drift.gitCommitsSinceImport+' Git / '+report.drift.museCommitsSinceExport+' Muse'],
+      ['Executable-bit warnings',report.executableWarnings]
+   ];
+   summary.replaceChildren();
+   for(const [label,value] of f) {
+     const item=node('div','bridge-fact');
+     item.append(node('span','',label),node('strong','',value));
+     summary.append(item);
+   }
+   const link=node('a','bridge-run-link','Inspect operator-supplied run #'+report.runId+' ↗');
+   if(!/^[1-9][0-9]{0,18}$/.test(String(report.runId)))throw new Error('Invalid saved run ID');
+   link.href='https://github.com/MichaelWave369/GitPorch/actions/runs/'+encodeURIComponent(report.runId);
+   link.target='_blank';
+   link.rel='noopener noreferrer';
+   summary.append(link);
+   commits.replaceChildren();
+   for(const item of report.commitMappings.slice(0,24)){
+     const row=node('div','club-row bridge-map');
+     row.append(node('strong','',item.gitSha.slice(0,12)+' ⇄ '+item.museCommitId.slice(0,19)+'…'),
+                node('small','',item.parentCount+' parent(s) · source Git SHA and mapped Muse object ID'));
+     commits.append(row);
+   }
+   if(!report.commitMappings.length)commits.append(node('p','club-empty','No commit mappings in saved receipt.'));
+   limits.textContent='Scope: '+report.limitations.join(' · ')+'. These are unsigned, operator-supplied receipts. No live MuseHub status is asserted.';
+ }catch {
+   blank('NOT CONNECTED · No accessible local Muse bridge evidence.');
+ }
+}
+refreshMuseBridge();

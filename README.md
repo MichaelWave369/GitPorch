@@ -1,5 +1,11 @@
 # The GitPorch
 
+## Muse bridge R0.8 · read-only local evidence shelf (operator opt-in)
+
+Our **actual Muse 0.2.2rc9** disposable [R0.7 live trial #6 passed](https://github.com/MichaelWave369/GitPorch/actions/runs/43997723043), including six imported Git commits, merge-parent DAG, historical file paths and stored raw bytes, final Git export and saved zero-drift checks. This is a **bounded synthetic-fixture pass**, not proof of production MuseHub sync.
+
+R0.8 makes those saved audit results useful in GitPorch's **localhost dashboard** (`#muse-bridge`) without connecting to MuseHub. The operator extracts the six-file Actions evidence folder and replays it using `npm run muse:bridge-status -- inspect <evidence-folder> <run-id>`. Only a separately approved `publish` command writes a sanitized **unsigned** summary receipt into private local data storage. The HTTP endpoint `GET /api/muse-bridge` never runs Muse or mutates data; missing, damaged or absent receipts cannot become fake green checks. See the [R0.8 operator guide](docs/MUSE_BRIDGE_R08_STATUS_SHELF.md). No remote Git operations, credentials, or auto-sync.
+
 ## Muse bridge R0.7 internal DAG and historical blob comparison (manual only)
 
 The first **real** R0.6 Muse 0.2.2rc9 Git → Muse → Git trial [passed](https://github.com/MichaelWave369/GitPorch/actions/runs/43968439939): six imported commits and matching final exported Git snapshot. **Internal Muse ancestry and historical snapshots were not inspected in that run.** R0.7 extends the existing manually dispatched workflow with read-only `muse read-commit`/`muse read-snapshot` comparisons against each original Git commit, including both merge parents. Six local fake-readback unit tests cover regression detection; they do **not** establish a live R0.7 pass. See [the R0.7 guide](docs/MUSE_BRIDGE_R07_INTERNAL_FIDELITY.md). No production repositories or automatic triggers.
