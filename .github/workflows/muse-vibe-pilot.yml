@@ -21,13 +21,13 @@ permissions:
 
 jobs:
   disposable-real-vibe:
-    if: $${ inputs.disposable_approval == 'RUN_DISPOSABLE_VIBE_MUSE_TEST' }
+    if: ${{ inputs.disposable_approval == 'RUN_DISPOSABLE_VIBE_MUSE_TEST' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      MUSE_VIBE_APPROVED: $${ inputs.disposable_approval }
-      VIBE_PINNED_SHA: $${ inputs.vibe_main_sha }
-      MUSE_INSTALLER_SHA256: $${ inputs.installer_sha256 }
+      MUSE_VIBE_APPROVED: ${{ inputs.disposable_approval }}
+      VIBE_PINNED_SHA: ${{ inputs.vibe_main_sha }}
+      MUSE_INSTALLER_SHA256: ${{ inputs.installer_sha256 }}
     steps:
       - name: Checkout reviewed GitPorch source without stored credentials
         uses: actions/checkout@v4
@@ -92,8 +92,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
           path: |
-            $${ runner.temp }}/muse-installer-sha256.txt
-            $${ runner.temp }}/gitporch-muse-vibe-r09/*.json
-            $${ runner.temp }}/gitporch-muse-vibe-r09/*.txt
-            $${ runner.temp }}/gitporch-muse-vibe-r09/*.log
-            $${ runner.temp }}/gitporch-muse-vibe-r09/*.err
+            ${{ runner.temp }}}/muse-installer-sha256.txt
+            ${{ runner.temp }}}/gitporch-muse-vibe-r09/*.json
+            ${{ runner.temp }}}/gitporch-muse-vibe-r09/*.txt
+            ${{ runner.temp }}}/gitporch-muse-vibe-r09/*.log
+            ${{ runner.temp }}}/gitporch-muse-vibe-r09/*.err
