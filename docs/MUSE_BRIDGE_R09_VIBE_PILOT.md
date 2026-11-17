@@ -30,9 +30,11 @@ Only after review and merge, go to **GitPorch → Actions → Muse × Vibe R0.9 
 
 Supply all three independent inputs:
 
-- **disposable_approval** = RUN_DISPOSABLE_VIBE_MUSE_TEST
+- **disposable_approval**: choose `RUN_DISPOSABLE_VIBE_MUSE_TEST` from the dropdown. The default is `DO_NOT_RUN` and intentionally **does not** authorize anything.
 - **vibe_main_sha** = the reviewed 40-hex public Vibe main Git commit ID. The trial refuses any newer unreviewed tip.
 - **installer_sha256** = the separately verified, reviewed 64-hex SHA-256 of https://musehub.ai/install.sh. It pins the installer *script only*, not Muse distributions and dependencies.
+
+**Troubleshooting skipped jobs:** On November 17, 2026, [manual run #44189834732](https://github.com/MichaelWave369/GitPorch/actions/runs/44189834732) was marked `skipped` *before any steps ran*. The R0.9 job previously had a job-level condition comparing an operator-typed approval string. An exact mismatch could silently skip the whole job, producing no logs or artifact. The workflow now offers an explicit approval dropdown and always starts with a **fail-fast** validation step. If `DO_NOT_RUN`, a missing pin, or malformed hash is submitted, that job will **fail with a visible explanation** before checkout, Vibe clone, installer download, or Muse execution. Selecting approval does not override either pin or later safety gate.
 
 The workflow runs **only** on manual dispatch. It uses an ephemeral GitHub runner with read-only repository permission, no persisted checkout credentials and no supplied repository secrets. Normal PR CI does not install Muse or clone the public Vibe repo.
 
