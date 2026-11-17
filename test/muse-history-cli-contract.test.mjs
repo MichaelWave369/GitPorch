@@ -4,12 +4,15 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import { captureReadbacks, eventsFromNDJSON, verifyReadbacks } from '../src/muse-history-verify.mjs';
 
 const gitSha = 'd'.repeat(40);
 const commitId = 'a'.repeat(64);
 const snapshotId = 'b'.repeat(64);
 const objectId = 'c'.repeat(64);
+const originalBytes = Buffer.from('Git source file bytes\\n', 'utf8');
+const originalSha256 = crypto.createHash('sha256').update(originalBytes).digest('hex');
 
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'muse-r07-cli-'));
@@ -30,8 +33,9 @@ function fixture(t) {
     "const argv = process.argv.slice(2);",
     "fs.appendFileSync(process.env.MUSE_CALL_TRACE, JSON.stringify(argv) + '\\n');",
     "if (argv.length === 1 && argv[0] === '--version') { console.log('muse 0.2.2rc9'); process.exit(0); }",
-    "if (!['read-commit', 'read-snapshot'].includes(argv[0])) process.exit(3);",
+    "if (!['read-commit', 'read-snapshot', 'cat-object'].includes(argv[0])) process.exit(3);",
     "if (!/^sha256:[a-f0-9]{64}$/.test(argv[1] || '')) { console.error('Invalid reference: use canonical sha256:<hex>'); process.exit(2); }",
+    "if (argv[0] === 'cat-object') { if (argv.length !== 2 || argv[1] !== " + JSON.stringify('sha256:' + objectId) + ") process.exit(3); process.stdout.write(Buffer.from('Git source file bytes\\n', 'utf8')); process.exit(0); }",
     "if (argv.length === 2 || process.env.MUSE_MOCK_FORCE_TEXT === '1') { console.log(argv[1]); process.exit(0); }",
     "if (argv.length !== 3 || argv[2] !== '--json') { console.error('unrecognized arguments'); process.exit(2); }",
     "if (argv[0] === 'read-commit' && argv[1] === " + JSON.stringify('sha256:' + commitId) + ") {",
@@ -59,7 +63,7 @@ function fixture(t) {
 function source() {
   const baseline = {
     schema: 'gitporch.muse-git-history-baseline.v1',
-    commits: [{ gitSha, parents: [], files: [{ path: 'README.md', sha256: objectId, mode: '100644' }] }]
+    commits: [{ gitSha, parents: [], files: [{ path: 'README.md', sha256: originalSha256, mode: '100644' }] }]
   };
   const events = eventsFromNDJSON([
     JSON.stringify({ event: 'commit', git_sha: gitSha, muse_commit_id: 'sha256:' + commitId }),
@@ -87,9 +91,14 @@ test('R0.7 requests explicit --json, preserves raw CLI evidence and validates im
   assert.deepEqual(calls.slice(-3), [
     ['read-commit', 'sha256:' + commitId, '--json'],
     ['read-snapshot', 'sha256:' + snapshotId, '--json'],
+    ['cat-object', 'sha256:' + objectId],
     ['--version']
   ]);
   for (const [command, id] of [['read-commit', commitId], ['read-snapshot', snapshotId]]) {
+  assert.equal(got.blobs[objectId].sha256, originalSha256);
+  assert.notEqual(objectId, originalSha256, 'Muse object ID must differ from raw-file SHA256 for this test');
+  const blobEvidence = fs.readFileSync(path.join(f.root, 'muse-cat-object-' + objectId + '.txt'), 'utf8');
+  assert.match(blobEvidence, new RegExp('raw_sha256=' + originalSha256));
     const evidence = fs.readFileSync(path.join(f.root, 'muse-' + command + '-' + id + '.txt'), 'utf8');
     assert.match(evidence, /exit_code=0/);
     assert.match(evidence, /stdout:\n\{/);
@@ -116,8 +125,8 @@ test('R0.7 still rejects a genuinely incorrect snapshot blob SHA-256', t => {
   const f = fixture(t);
   const { baseline, events } = source();
   const got = captureReadbacks(f.muse, events);
-  got.records[0].snapshot.manifest['README.md'] = 'e'.repeat(64);
+  got.blobs[objectId].sha256 = 'e'.repeat(64);
   const r = verifyReadbacks(baseline, events, got);
   assert.equal(r.status, 'FAIL_OR_INCOMPLETE_HISTORY');
-  assert.ok(r.problems.some(x => x.code === 'WRONG_BLOB'));
+  assert.ok(r.problems.some(x => x.code === 'WRONG_BLOB_BYTES'));
 });
