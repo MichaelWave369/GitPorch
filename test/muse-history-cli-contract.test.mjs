@@ -28,7 +28,7 @@ function fixture(t) {
     "const argv = process.argv.slice(2);",
     "fs.appendFileSync(process.env.MUSE_CALL_TRACE, JSON.stringify(argv) + '\\n');",
     "if (argv.length === 1 && argv[0] === '--version') { console.log('muse 0.2.2rc9'); process.exit(0); }",
-    "if (argv.length !== 2 || !/^sha256:[a-f0-9]{64}$/.test(argv[1])) { console.error("Invalid commit reference: use canonical sha256:<hex>"); process.exit(2); }",
+    "if (argv.length !== 2 || !/^sha256:[a-f0-9]{64}$/.test(argv[1])) { console.error('Invalid commit reference: use canonical sha256:<hex>'); process.exit(2); }",
     "if (argv[0] === 'read-commit' && argv[1] === " + JSON.stringify('sha256:' + commitId) + ") {",
     " console.log(JSON.stringify({commit_id:" + JSON.stringify(commitId) + ",metadata:{git_sha:" + JSON.stringify(gitSha) + "},parent_commit_id:null,parent2_commit_id:null,snapshot_id:" + JSON.stringify(snapshotId) + "})); process.exit(0);",
     "}",
