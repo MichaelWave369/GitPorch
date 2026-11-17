@@ -15,6 +15,7 @@
   <nav>
   <a href="#home" class="active">⌂ <span>Front Porch</span></a>
   <a href="#repositories">⑂ <span>Repositories</span></a>
+  <a href="#muse-bridge">⇄ <span>Muse Bridge</span><i>R0.8</i></a>
   <a href="#clubhouse">◇ <span>PhiBots Clubhouse</span></a>
   <a href="#workshop">⚒ <span>The Workshop</span><i>R1-D1</i></a>
   <a href="#phirunners">Φ <span>PhiRunners</span><i>R1-E</i></a>
@@ -39,6 +40,20 @@
 <div class="stats"><article><small>REPOSITORIES &nbsp; ⑂</small><strong id="repo-count">—</strong><span>Local Git homestead</span></article><article><small>BRANCHES &nbsp; ⌁</small><strong id="branch-count">—</strong><span>Across local repos</span></article><article><small>GIT TRANSPORT &nbsp; ⇄</small><strong id="transport" class="word">CHECKING</strong><span>Loopback-only, read-only</span></article><article><small>THE PORCH CREW &nbsp; ⚒</small><strong class="word">R1-D1</strong><span>Local tests + safe job recovery</span></article></div>
 <section id="repositories" class="section"><div class="heading"><div><small>YOUR OWN CORNER OF THE INTERNET</small><h2>Repositories <em>on the porch.</em></h2><p>Bare Git repositories from your machine. No cloud required.</p></div><a class="btn outline" href="#start">+ New repository ↘</a></div>
 <div class="columns"><div class="repos" id="repos"></div><div class="ledger" id="ledger"><div class="ledger-head"><span>▤</span><div><strong>The Ledger</strong><small>RECENT COMMIT EVIDENCE</small></div></div><div class="history" id="history">Select a repository to inspect its history.</div><div class="ledger-foot">No invented build results. Only Git evidence.</div></div></div>
+</section>
+<section id="muse-bridge" class="section muse-bridge">
+<div class="heading"><div><small>GITPORCH × MUSE · R0.8 · OPERATOR-SUPPLIED EVIDENCE</small><h2>The bridge <em>ledger.</em></h2><p>Read-only view of explicitly imported, replay-checked local evidence. Not a live MuseHub connection.</p></div></div>
+<div class="clubhouse-grid">
+<div class="club-pane"><h3>Bridge status <small>UNSIGNED LOCAL RECEIPT</small></h3>
+<div id="muse-bridge-state" class="workshop-stats" role="status" aria-live="polite">Checking local bridge evidence...</div>
+<div id="muse-bridge-summary" class="bridge-facts">Nothing has been automatically imported.</div>
+</div>
+<div class="club-pane"><h3>Commit correspondence <small>GIT SHA ⇄ MUSE COMMIT ID</small></h3>
+<div id="muse-bridge-commits" role="list" class="bridge-mappings">No saved bridge receipts.</div>
+</div>
+</div>
+<p id="muse-bridge-limits" class="club-note">A passing imported receipt replays the saved Git baseline, Muse import log and readbacks. It does not authenticate the operator's files, sign a result, rerun Muse or verify a live remote.</p>
+<p class="club-note">To inspect an extracted GitHub Actions evidence folder without publishing it: <code>npm run muse:bridge-status -- inspect &lt;evidence-dir&gt; &lt;run-id&gt;</code>. To save a sanitized local receipt, use the explicitly approved <code>publish</code> command described in <code>docs/MUSE_BRIDGE_R08_STATUS_SHELF.md</code>. No browser writes, automatic synchronization, credentials, or remote pushes.</p>
 </section>
 <section id="clubhouse" class="section clubhouse">
 <div class="heading"><div><small>THE ROCKING CHAIRS · LOCAL CONTRIBUTORS</small><h2>PhiBots <em>Clubhouse.</em></h2><p>Real local proposal receipts and contributor records. Reviews never perform merges.</p></div></div>
