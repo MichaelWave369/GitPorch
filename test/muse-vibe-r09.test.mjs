@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { planVibeHistorySlice, MAX_PILOT_COMMITS } from '../src/muse-vibe-slice.mjs';
 
 function git(dir, ...args) {
@@ -109,7 +110,7 @@ test('R0.9 manual workflow is fixed-public-source, review-pinned, token-minimal 
 });
 
 test('R0.9 Bash syntax and manual-approval guards', t => {
-  const script = new URL('../scripts/muse-live-vibe.sh', import.meta.url);
+  const script = fileURLToPath(new URL('../scripts/muse-live-vibe.sh', import.meta.url));
   const check = spawnSync('bash', ['-n', script], { encoding: 'utf8' });
   assert.equal(check.status, 0, check.stderr);
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-r09-guard-'));
