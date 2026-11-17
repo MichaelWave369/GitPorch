@@ -319,7 +319,8 @@ async function refreshMuseBridge() {
      summary.append(item);
    }
    const link=node('a','bridge-run-link','Inspect operator-supplied run #'+report.runId+' ↗');
-   link.href=report.runUrl;
+   if(!/^[1-9][0-9]{0,18}$/.test(String(report.runId)))throw new Error('Invalid saved run ID');
+   link.href='https://github.com/MichaelWave369/GitPorch/actions/runs/'+encodeURIComponent(report.runId);
    link.target='_blank';
    link.rel='noopener noreferrer';
    summary.append(link);
