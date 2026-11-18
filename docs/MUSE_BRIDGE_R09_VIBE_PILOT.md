@@ -59,6 +59,15 @@ The R0.8 bridge dashboard currently stores *unsigned R0.7-style receipt summarie
 This fix repairs the artifact paths, makes a missing artifact a visible upload error, records the runner's failed stage, and prints **bounded, public-source-only** summaries of the internal history, final snapshot, status receipt, and evidence packet when an audit fails. The complete JSON and stderr files are uploaded for operator inspection on the next manually approved run. It is impossible to reconstruct the missing run #9 evidence from the job log alone.
 
 Before another test, independently recheck *both* the Vibe `main` Git SHA and the reviewed Muse installer bytes. The prior pins are historical observations and may be stale. No manual workflow is dispatched by this PR.
+## Run #12: reused immutable Muse snapshots (November 18, 2026 UTC)
+
+[R0.9 manual run #44204886891](https://github.com/MichaelWave369/GitPorch/actions/runs/44204886891) reached Muse **0.2.2rc11** with a pinned authentic Vibe historical Git slice. Its independent **final Git snapshot audit** passed with zero missing/extra/content/mode differences; the **status audit** also passed. The packet assembler reported its bounded Git gates passed, but this alone does not certify Muse's full stored history.
+
+The stored-history readback capture crashed before completing its report: an `EEXIST` error for a diagnostic filename `muse-read-snapshot-<object-id>.txt`. Multiple distinct Git commits can legitimately point to **the same immutable Muse snapshot ID** when their tracked trees are identical. The R0.7 synthetic fixture did not exercise such repeated snapshot IDs. The old harness issued `muse read-snapshot` for every commit, then wrote to an exclusive `wx` filename based only on the snapshot ID. The second occurrence collided with the first. **This is a GitPorch evidence capture bug, not a proven data-integrity failure in Muse.**
+
+The fix keeps one `read-commit` for each unique imported commit, reads and captures **each unique snapshot object ID once**, and then checks that same stored snapshot against **every corresponding Git commit** in `verifyReadbacks`. It does not fabricate different snapshots, ignore duplicate imports, overwrite diagnostic evidence, or relax path/byte/ancestry checks. Invalid duplicated Git/Muse import events now fail explicitly. An offline fake-Muse regression recreates shared-snapshot history, verifies per-commit historical bytes, and checks that diagnostic files remain exclusive.
+
+**Status:** Review and merge the PR, then explicitly dispatch a fresh no-push R0.9 test with newly checked Vibe and installer pins. That future run, not this patch or fake-Muse regression, determines real historical fidelity for the selected Vibe slice.
 ## Later experiments
 
 **R0.9B:** Vibe semantic-diff/merge comparison using detached copied files, separate offline runtime, actual Vibe tools, and human-reviewed results. This trial does not execute Vibe's Python code or install its dependencies.

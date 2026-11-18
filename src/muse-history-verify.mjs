@@ -88,11 +88,31 @@ export function captureReadbacks(cwd, events, diagnosticsDir) {
   const imported = events.filter(e => e.event === 'commit');
   if (imported.length < 1 || imported.length > 96) throw new Error('Expected 1-96 imported commits');
   const records = [];
+  // A content-addressed Muse snapshot can legitimately be shared by MANY
+  // distinct Git commits (e.g. a metadata-only commit or an unchanged tree).
+  // Capture each unique immutable snapshot only once, then compare its stored
+  // bytes against EVERY corresponding Git commit in verifyReadbacks below.
+  // readMuse uses exclusive ('wx') evidence files, so reading the same object
+  // repeatedly into the same diagnostic name is also correctly avoided.
+  const snapshots = new Map();
+  const seenGitCommits = new Set();
+  const seenMuseCommits = new Set();
   for (const e of imported) {
     if (!gitRe.test(e.git_sha) || !museRe.test(e.muse_commit_id)) throw new Error('Invalid import event');
+    const museCommitKey = bareMuseId(e.muse_commit_id);
+    if (seenGitCommits.has(e.git_sha) || seenMuseCommits.has(museCommitKey)) {
+      throw new Error('Duplicate Git/Muse commit import event: refusing ambiguous readback evidence');
+    }
+    seenGitCommits.add(e.git_sha);
+    seenMuseCommits.add(museCommitKey);
     const commit = readMuse(cwd, 'read-commit', e.muse_commit_id, diagnosticsDir);
     if (!museRe.test(commit.snapshot_id)) throw new Error('Invalid Muse snapshot ID');
-    const snapshot = readMuse(cwd, 'read-snapshot', commit.snapshot_id, diagnosticsDir);
+    const snapshotKey = bareMuseId(commit.snapshot_id);
+    let snapshot = snapshots.get(snapshotKey);
+    if (!snapshot) {
+      snapshot = readMuse(cwd, 'read-snapshot', commit.snapshot_id, diagnosticsDir);
+      snapshots.set(snapshotKey, snapshot);
+    }
     records.push({ muse_commit_id: e.muse_commit_id, commit, snapshot });
   }
   const uniqueObjects = new Set();
